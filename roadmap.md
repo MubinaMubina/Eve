@@ -14,7 +14,7 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 | Track | Owner | Why it can't wait |
 |---|---|---|
-| **Visa & company** | You | Longest lead time, zero flexibility |
+| **Visa & paperwork** | You | Longest lead time, zero flexibility |
 | **Users** | You | Your seed cohort *is* your launch |
 | **Build** | Me | Five weeks of actual work |
 
@@ -24,7 +24,7 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Visa — start Monday.** Check the Bangkok B-1/B-2 appointment wait time. Apply on general business grounds; you don't need an acceptance letter, and a multi-year visa in hand removes the biggest execution risk from your application. This is the single most urgent item in the document because it's the only one whose clock you don't control.
 
-**Company.** Delaware C-corp via Stripe Atlas (~$500). Request the D-U-N-S number immediately after — free, up to 5 business days, and Apple won't verify an organization without it. Have Brex or Relay ready in case Mercury declines.
+**Company — start the paperwork, don't incorporate yet.** The only piece with real lead time is the **EIN**, which without an SSN or ITIN means filing Form SS-4 by fax or mail and waiting **4–8 weeks** on the IRS. Start that now; it costs nothing. Incorporate on a trigger — an acceptance, a term sheet, or revenue — not on a date. See *Deferred* below for why.
 
 **Talk to the seven.** Nabeeha, Karima, Tayyaba, Nurina, Urooj, Nighat, Hira. One question above all: *how many Instagram accounts do you have, and why?* Their exact words become your landing page. This conversation is also founding-cohort recruitment — you're not researching, you're inviting.
 
@@ -104,11 +104,40 @@ Three things run in parallel and only one of them is code. The build is the one 
 |---|---|
 | SMS (Twilio Verify + Lookup) | ~$0.05/user — **your only per-user cost** |
 | Hosting (Vercel, Supabase, PostHog) | ~$50/mo |
-| Incorporation | ~$500 one-time |
 | Legal review (terms, privacy, moderation policy) | $1–3k |
-| **Total to 12 Oct** | **~$2–4k** |
+| **Total to 12 Oct** | **~$1.5–3.5k** |
 
-Dropping ID verification and video removed almost all the variable cost. At 600 users your verification spend is about thirty dollars.
+Dropping ID verification and video removed almost all the variable cost — at 600 users your verification spend is about **thirty dollars** in SMS. That's a strong answer when they ask about unit economics.
+
+Legal review is now the dominant line, and it's the one not to cut: you're launching a platform where women post sensitive content anonymously. Terms, privacy policy, and a written moderation policy before real users arrive.
+
+**No Apple Developer enrollment** ($99) and **no incorporation** ($500) before October — see below.
+
+---
+
+## Deferred until there's a trigger
+
+Two things the earlier plan had in week 1 that shouldn't be there.
+
+### The App Store
+
+**Ship the PWA only.** Every user arrives through a vouch link — tap from WhatsApp, land in Eve, join. Inserting *tap link → App Store → download → find your way back* adds friction to the exact funnel 8.1 names as your top risk. A PWA installs to the home screen, opens from a link, ships fixes in minutes instead of review cycles, and supports web push on iOS 16.4+. With no video in v1, nothing needs native.
+
+Consequence: **no Apple org enrollment, so no D-U-N-S deadline** — which is what made incorporation urgent in the first place.
+
+### Incorporation
+
+Delaware C-corp via Stripe Atlas (~$500) is right *when you do it*, because US venture money only flows into that structure — SAFEs assume it, and a16z's does. But it isn't needed to apply, only to receive money, and there's typically 6–8 weeks between an acceptance and a wire. SPEEDRUN actively helps with this; a large share of their founders are international.
+
+What it actually costs once you start: **$1,000–2,000 every year**, revenue or not — ~$450 Delaware franchise tax, ~$100 registered agent, Form 1120, and an accountant.
+
+**Three things to have ready for when you do incorporate:**
+
+- **Form 5472 — $25,000 penalty.** A US corporation that's 25%+ foreign-owned must file it annually alongside Form 1120, **even with zero revenue and zero activity**. This catches non-US founders constantly because nothing in the incorporation process warns you. Whoever does your taxes must know about it.
+- **83(b) election — 30 days, no extensions.** File within 30 days of your founder stock being issued or you can owe tax on the appreciation as it vests. One of the most expensive founder mistakes there is. Filing it without an SSN is fiddly — get advice.
+- **Delaware franchise tax method.** The default "authorized shares" calculation on a standard 10M-share startup produces a bill in the tens of thousands. Elect the **assumed par value** method to bring it to a few hundred.
+
+**Banking:** Mercury bundles with Atlas but rejects Pakistani, Bangladeshi, Nigerian and Indian founders at higher rates. Your Thai residency may help, since banks often weigh residence over nationality. Have **Wise Business** ready as the fallback — generally the most forgiving for non-US founders. Relay and Rho are alternatives.
 
 ---
 
