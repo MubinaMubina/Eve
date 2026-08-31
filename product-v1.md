@@ -63,52 +63,68 @@ Two details that make it work:
 
 ## Verification: the vouch model
 
-### The decision
+*Settled 1 Sep 2026. Full mechanics in [architecture.md](architecture.md).*
 
-**No ID documents. No biometrics. No selfie checks. Entry is by vouch.**
+### No biometrics, no ID documents, anywhere
 
-This isn't a compromise — it's the only architecture that fits the policy you actually stated in 0.4: *mostly women, trans women, then gay men.* No government ID identifies someone as a gay man. Many trans women cannot update their documents. **ID verification structurally cannot implement your inclusion policy.** Vouching can.
+Not a cost decision — a structural one. ID checks **cannot implement the policy in your 0.4 answer** (women, trans women, gay men). No government ID identifies someone as a gay man; many trans women cannot update their documents. Vouching can. It also keeps you out of BIPA and GDPR Article 9 entirely, and it means Eve never adjudicates anyone's gender.
 
-It's also cheaper (no $0.50–2.50 per user), far less legally exposed (no biometric data, so no BIPA or GDPR Article 9 problem), and it makes Eve a *private invite-only network* rather than a company adjudicating who counts as a woman. That distinction matters enormously, both legally and morally.
+Instagram login was also considered and is not available: Meta shut down the Basic Display API on 4 Dec 2024 and the replacement doesn't support personal accounts.
 
-### The recommendation I want you to react to
+### Trust tiers, not a binary gate
 
-You said vouching applies to men. **I think it should apply to everyone**, and here's the hole it closes:
+| Tier | How you get there | What it unlocks |
+|---|---|---|
+| 0 — New | Signed up | Browse public posts |
+| 1 — Phone verified | SMS, VoIP blocked | Post and comment publicly |
+| 2 — Vouched | Two vouches (A + B) | **Women-only content, anonymous posting** |
+| 3 — Established | 7+ days, clean record | Create circles, vouch for others |
 
-If signup is open and only men need vouching, a man simply declares himself a woman at signup. Nothing catches him. The entire protection is a dropdown he can lie to.
+**Women-only content is gated at Tier 2, not at the front door.** Someone who lies at signup lands at Tier 1 and never reaches anything protected.
 
-So: **everyone enters by vouch.** Eve is invite-only, and your invite is a vouch from someone already here who knows you personally.
+### The two vouches — identical for everyone
 
-This is not "women need permission." It's the same mechanic every desirable network launched with — early Facebook, Gmail, Clubhouse. And it's worth being precise about a distinction your 8.1 answer collapses: **invite friction is not verification friction.** Verification friction is bureaucratic and insulting — upload your passport, wait, get rejected. Invite friction is social, and it makes a product *more* desirable, not less. An invite from your sister isn't a barrier. It's the reason you join.
+Same flow, same requirements, regardless of declared gender. A rule that treats men differently would require determining who is a man, which is the adjudication this design removes — and differential treatment by gender is the discrimination exposure.
 
-### How it works
+- **Voucher A** — an established member (7+ days, clean record) **or** an invitation from Eve's team
+- **Voucher B** — anyone with a verified phone. No account needed
 
-| | |
-|---|---|
-| **Everyone** | Enters by vouch from an existing member who knows them personally |
-| **Women** | 1 vouch |
-| **Men** | 2 vouches, both from women, both public on his profile |
-| **Pending state** | Profile visibly reads *"Approval pending"* until cleared |
-| **What pending can do** | Browse public posts only. No commenting, no DMs, nothing gender-filtered, no anonymous posting |
-| **Vouches are public** | Shown on the vouched person's profile. Visible cost is what makes a vouch mean something |
-| **Vouches are revocable** | Withdraw at any time; the account reverts to pending |
-| **Accountability** | If someone you vouched for is banned, you lose vouching ability. Vouch chains police themselves |
+**Both vouchers:** verify phone by SMS, give name, email and date of birth, and sign an affirmation — *"My vouch is attached to my number. If this account is removed for harming someone, I can never vouch again."* Invisible to the applicant. Explicit "I don't vouch for this person" option. The phone number is burned if the vouched account is later banned.
 
-### The detail that matters most
+**The gender check happens here, performed by people who know the applicant.** The vouch form shows the declaration — *"Ali has signed up as a woman. Is that accurate, to your knowledge?"* Eve never decides; it only records what the people who know you said.
 
-**A pending man must never be able to solicit vouches inside the app.** If he can message women to ask, you've built a harassment vector into your onboarding — on day one, in the exact place you promised safety.
+**Vouch budget:** 3 per member, +2 per month of clean standing. Caps damage from any single bad actor, creates real scarcity, and makes people spend vouches on those they actually trust.
 
-Instead: he generates a **vouch link**, shares it *outside* Eve (WhatsApp, iMessage, wherever he actually knows these people), and she taps it. The ask happens in a relationship that already exists. Eve never carries it.
+### Path 2 — for people who know nobody
 
-### Bootstrap
+A waitlist, not an adjudication. They submit their Instagram handle; Eve generates a code that expires in 30 minutes; they put it in their bio; **a reviewer opens instagram.com/[handle] directly and checks.** No media is ever accepted from the applicant — anything they upload can be generated, so nothing they upload is evidence.
 
-Your original rule — vouchers must have been members a month — means nobody can vouch at launch. Founding cohort is invited directly by you, with vouching rights from day one. The one-month seasoning rule kicks in after week four.
+The reviewer checks account age and history, follower quality, and presence in *other people's* accounts — the last being the hardest thing to fake, because a manufactured persona is an island.
 
-### Trans women and gay men
+Your team then **invites** from that list in batches, seeding clusters the graph hasn't reached. Choosing who to invite is a normal thing an invite-only network does; ruling on whether someone's gender claim is true is a different activity with a different legal shape.
 
-Trans women enter as women: one vouch, no adjudication by Eve, ever. Gay men enter through the standard two-vouch path. The company never rules on anyone's identity — the people who know them do. That's the whole point, and it's a good answer when you're asked.
+### Anti-self-vouching
 
----
+Voucher A being an established member is structurally self-vouch-proof. Beyond that: different phone number (enforced by one-account-per-number), device fingerprint must differ from the signup device, and same-IP-within-ten-minutes flags for human review rather than auto-blocking.
+
+*Honest limit:* nothing short of biometric matching proves two different humans. These make it expensive and awkward; behavioural signals catch the rest within days.
+
+### What's verifiable, and what is only attested
+
+| | Verifiable | Method |
+|---|---|---|
+| Phone | Yes | SMS, VoIP blocked (~$0.05) |
+| Email | Yes | Magic link |
+| Age | **No** | Self-declared DOB, hard 18+ block. A legal shield, not a fact |
+| Gender | **No** | Self-declared, confirmed by vouchers who know them |
+
+### Men on Eve
+
+Men can join, browse, post publicly, and be vouched into full membership. They never see a post marked *Women only*, because that filter reads declared gender. **The asymmetry is in the content filter, not the entry gate.**
+
+Gay men are not carved out. Any exception would be self-declared and instantly gamed — a filter with a checkbox bypass. Where a woman wants specific men included, **circles and "+ add specific people" already handle it, per post, by her choice.** That's more true to the product than a platform-level category would be.
+
+*Note for the pitch:* "men are welcome" and "men are a growth segment" are different claims. Only the first is true.
 
 ## v1 scope
 

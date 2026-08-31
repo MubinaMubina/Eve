@@ -4,7 +4,9 @@
 
 **Files in this project**
 - [questions-before-code.md](questions-before-code.md) — the 39-question thinking pass, with your answers
-- [product-v1.md](product-v1.md) — product spec. **Its verification section is now out of date** — superseded by the decisions below
+- [product-v1.md](product-v1.md) — product spec, verification section current as of 1 Sep
+- [architecture.md](architecture.md) — composer, feed, data model, authorization, security
+- [roadmap.md](roadmap.md) — the rebuilt six weeks
 - [conversation-log.md](conversation-log.md) — this file
 
 ---
@@ -100,6 +102,44 @@ Text and images only. Video means transcoding, CDN, storage cost and about a wee
 
 ### D12 — Mobile web PWA before native
 No app store review delay, opens from a link, ships fixes in minutes. Native is a v2 decision.
+
+### D13 — Path 2 is a waitlist, not an adjudication *(corrects D5)*
+As first described, Path 2 had a hole: asking a reviewer to judge "is this a woman" from a profile reintroduces the biased, company-made determination that D4 removed — an ML classifier with a human in the chair, arguably worse legally because there is someone to depose.
+
+**Fixed:** the code check establishes only *"a real person with real history controls this account."* Eve's team then **invites** from the resulting waitlist. Choosing whom to invite is a normal invite-only-network activity; ruling on a gender claim is not.
+
+Also: **never accept media from the applicant.** Screen recordings can be generated. The reviewer opens `instagram.com/[handle]` directly — a human viewing a public page, which is not scraping. The only thing that can't be faked is time, so account age and presence in *other people's* accounts are the signals that matter.
+
+### D14 — Rules are identical for everyone
+Same flow, same two vouches, regardless of declared gender. A men-only rule requires determining who is a man — the adjudication we removed — and it's trivially bypassed by declaring female. Differential treatment by declared gender is also the *Tickle v Giggle* exposure.
+
+**The gender check moved into the vouch form:** vouchers are shown the applicant's declaration and asked to confirm it. Eve never decides; it records what people who know the applicant said.
+
+**The asymmetry lives in the content filter, not the entry gate.** A man can be a full member and still never see a *Women only* post.
+
+### D15 — No carve-out for gay men *(your call)*
+Any exception would have to be self-declared, so any man wanting into women-only spaces would simply declare himself gay — a filter with a checkbox bypass. It also avoids recording anything about sexuality, which is special-category data under GDPR.
+
+Where a woman wants specific men included, **circles and "+ add specific people" already do it**, per post, by her choice. Better than a platform-level category, and it costs nothing since circles are already in v1.
+
+### D16 — "Women only" means women only *(rejected: the mutual-follow exception)*
+Proposed: *Women only* would still include men she follows back, with a note under the control.
+
+**Rejected.** The failure mode is the central use case of the app breaking: she posts something vulnerable, selects the label that means safe, and a cousin, a colleague and an ex all see it. Warning microcopy doesn't save it — bold "Women only" beats grey caveat text every time, especially on the 1am post. And mutual-follow is a *social obligation*, not a trust signal; using it as the boundary imports exactly the population the app exists to escape.
+
+**Instead:** she picks *Women only*, then optionally taps **"+ add specific people"** and names them. Same need served, guarantee intact, and she knows who's there because she just put them there.
+
+**The principle:** the safe option is the simple option, and every exception costs an action. Never a reassuring label with a quiet carve-out inside it. It also means the answer to *"does women only mean women only?"* is one word.
+
+### D17 — Architecture decisions *(see [architecture.md](architecture.md))*
+- **Authorization in Postgres RLS, not application code.** Per-post visibility enforced in app code fails the first time someone writes a query that forgets the filter
+- **Read-time evaluation**, so removing someone from a circle immediately revokes access to every past post to it
+- **Clients never read `posts`** — only a `security_invoker` view that nulls `author_id` on anonymous rows
+- **UUIDv4 keys**, never sequential and not v7 (v7 embeds a timestamp, which correlates anonymous posts)
+- **A gender change drops you out of Tier 2 and deletes your vouches.** Vouchers confirmed a specific declaration; if it changes, it needs re-confirming
+- **Audience control sits above the text field.** Choosing the room before you speak is the correct order and it's the product's whole thesis
+- **First-ever default is Women only.** The default's failure mode must be disappointment, not exposure
+- **Screenshots cannot be prevented.** Say so in the copy rather than implying a guarantee that can't be kept
 
 ---
 
