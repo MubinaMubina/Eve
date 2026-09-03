@@ -75,9 +75,11 @@ Vendor-hosted ID + liveness check (Persona / Veriff / Stripe Identity, ~$1–2).
 
 An optional selfie liveness + dedup check can **fast-track** high-confidence cases — but gender estimation is a *signal, never a decision*: ambiguous or misread users silently fall back to Path B. Nobody is ever rejected by an algorithm, and nobody is told they were misread. (The classifiers are weakest on exactly our users — darker-skinned women, older women, hijabis.)
 
+What comes back, and all that is ever stored: *passed or failed*, *document sex marker matches the declaration*, *document date of birth matches the declaration*, and a vendor-computed one-way key that stops one document verifying two accounts. **Path A grants Tier 2 by itself** when the first three are true, under the same rule for every declared gender. When the marker doesn't match, the user is never told why; she simply sees the vouch door. Eve pays the vendor fee. Women stay free.
+
 ### Path B — vouching (free, human, always available)
 
-Two vouches from people who know you. This is the route for trans women whose documents don't match, for anyone unwilling to upload an ID, and for anyone Path A misreads. **Its existence is the legal defence**: Eve never excludes anyone on a document, and Eve never adjudicates gender — the people who know you do.
+Vouches from people who know you — how many, and of which kind, is a policy setting that tightens as the graph grows (table below). This is the route for trans women whose documents don't match, for anyone unwilling to upload an ID, and for anyone Path A misreads. **Its existence is the legal defence**: Eve never excludes anyone on a document, and Eve never adjudicates gender — the people who know you do.
 
 Voucher strictness ramps with graph size (1 member vouch at launch → 2 at maturity); founding cohort is hand-verified by the founder with large vouch budgets. Cascading revocation: a banned account burns its vouchers' vouching rights, and corrupt subtrees get cut whole.
 
@@ -88,26 +90,38 @@ Instagram login was also considered and is not available: Meta shut down the Bas
 | Tier | How you get there | What it unlocks |
 |---|---|---|
 | 0 — New | Signed up | Browse public posts |
-| 1 — Phone verified | SMS, VoIP blocked | Post and comment publicly |
-| 2 — Vouched | Two vouches (A + B) | **Women-only content, anonymous posting** |
+| 1 — Contact verified | Email magic link at launch; phone (SMS, VoIP blocked) once funded | Post and comment publicly |
+| 2 — Verified | Path A **or** Path B | **Women-only content, anonymous posting** |
 | 3 — Established | 7+ days, clean record | Create circles, vouch for others |
 
 **Women-only content is gated at Tier 2, not at the front door.** Someone who lies at signup lands at Tier 1 and never reaches anything protected.
 
-### The two vouches — identical for everyone
+### Vouches — identical for everyone
 
 Same flow, same requirements, regardless of declared gender. A rule that treats men differently would require determining who is a man, which is the adjudication this design removes — and differential treatment by gender is the discrimination exposure.
 
-- **Voucher A** — an established member (7+ days, clean record) **or** an invitation from Eve's team
-- **Voucher B** — anyone with a verified phone. No account needed
+Two kinds of voucher:
 
-**Both vouchers:** verify phone by SMS, give name, email and date of birth, and sign an affirmation — *"My vouch is attached to my number. If this account is removed for harming someone, I can never vouch again."* Invisible to the applicant. Explicit "I don't vouch for this person" option. The phone number is burned if the vouched account is later banned.
+- **Member vouch** — from an established member (7+ days, clean record) **or** an invitation from Eve's team, which counts the same
+- **Phone vouch** — from anyone with a verified phone. No account needed. Not required by the launch policy, so it waits for SMS to be funded
+
+How many of each Tier 2 needs is configuration, not code, and tightens as the graph grows. Starting thresholds — tune them from the verification completion rate, not from theory:
+
+| Phase | Roughly | Tier 2 needs |
+|---|---|---|
+| Launch | under ~200 members | 1 member vouch |
+| Growth | ~200–2,000 | 1 member vouch + 1 phone vouch |
+| Maturity | 2,000+ | 2 member vouches |
+
+Tightening never demotes anyone already verified. Demotion is only ever explicit: a ban, or a change of declared gender.
+
+**Every voucher:** verify phone by SMS, give name, email and date of birth, and sign an affirmation — *"My vouch is attached to my number. If this account is removed for harming someone, I can never vouch again."* Invisible to the applicant. Explicit "I don't vouch for this person" option. The phone number is burned if the vouched account is later banned.
 
 **The gender check happens here, performed by people who know the applicant.** The vouch form shows the declaration — *"Ali has signed up as a woman. Is that accurate, to your knowledge?"* Eve never decides; it only records what the people who know you said.
 
 **Vouch budget:** 3 per member, +2 per month of clean standing. Caps damage from any single bad actor, creates real scarcity, and makes people spend vouches on those they actually trust.
 
-### Path 2 — for people who know nobody
+### The waitlist — for people who know nobody
 
 A waitlist, not an adjudication. They submit their Instagram handle; Eve generates a code that expires in 30 minutes; they put it in their bio; **a reviewer opens instagram.com/[handle] directly and checks.** No media is ever accepted from the applicant — anything they upload can be generated, so nothing they upload is evidence.
 
@@ -117,7 +131,7 @@ Your team then **invites** from that list in batches, seeding clusters the graph
 
 ### Anti-self-vouching
 
-Voucher A being an established member is structurally self-vouch-proof. Beyond that: different phone number (enforced by one-account-per-number), device fingerprint must differ from the signup device, and same-IP-within-ten-minutes flags for human review rather than auto-blocking.
+A member vouch coming from an established member is structurally self-vouch-proof. Beyond that: different phone number (enforced by one-account-per-number), device fingerprint must differ from the signup device, and same-IP-within-ten-minutes flags for human review rather than auto-blocking.
 
 *Honest limit:* nothing short of biometric matching proves two different humans. These make it expensive and awkward; behavioural signals catch the rest within days.
 
@@ -125,10 +139,10 @@ Voucher A being an established member is structurally self-vouch-proof. Beyond t
 
 | | Verifiable | Method |
 |---|---|---|
-| Phone | Yes | SMS, VoIP blocked (~$0.05) |
-| Email | Yes | Magic link |
+| Email | Yes | Magic link — the launch identity |
+| Phone | Yes | SMS, VoIP blocked (~$0.05) — once funded |
 | Age | **No** | Self-declared DOB, hard 18+ block. A legal shield, not a fact |
-| Gender | **No** | Self-declared, confirmed by vouchers who know them |
+| Gender | **No** | Self-declared, confirmed by a document marker (Path A) or by vouchers who know them (Path B) |
 
 ### Men on Eve
 
@@ -181,11 +195,12 @@ Rough math: 500 businesses at a blended $100/mo = **$600k ARR** — a quarter of
 
 ### Build
 
+- **A native app** — iOS first (Expo, shipped through a friend's Apple account), Android from the same codebase once the Play fee is paid. Web only for the waitlist and the voucher page
 - **Invite / vouch onboarding** — links, pending state, public vouches, revocation
 - **The composer** — both dials, on posts and replies
 - **Feed** — chronological, respecting every audience rule
 - **Rant view** — the anonymous filter over the same posts
-- **Profiles and follows** — minimal
+- **Profiles and follows** — minimal. Likes and follower counts are private to the owner by default; she can make them public after 30 days (7.4). No scoreboards on day one
 - **Circles** — named custom audience lists
 - **Likes and replies** — one level of threading
 - **Report, block, and a human moderation queue you actually read**
@@ -195,7 +210,7 @@ Rough math: 500 businesses at a blended $100/mo = **$600k ARR** — a quarter of
 - **Video.** Text and images only for v1. Video means transcoding, CDN, storage cost, and a week you don't have. Your product is "post the thing you wouldn't post" — that's mostly words and pictures. Video is v2.
 - **AI comment moderation.** Report and block are non-negotiable; the automated filter is not. Human queue at 200 users.
 - **DMs.** Your own 5.3 flagged these as reflex-copied from Instagram. They're also your largest safety liability.
-- **Pinterest boards, AI video generation, monetization, custom algorithm.** All correctly cut in Round 05. Keep them cut.
+- **Pinterest boards, AI video generation, creator payouts, custom algorithm.** All correctly cut in Round 05. Keep them cut. Business revenue is a different thing: it's pre-sold before 12 Oct and built after (see Monetization). Nothing of it ships in v1 beyond the schema stub.
 
 ### The engineering shape
 
@@ -240,7 +255,7 @@ Honest list. Don't paper over these in an application; have answers.
 
 1. **No revenue yet.** SPEEDRUN's recent cohorts put ARR in their one-liners. The plan: retention curve as the traction number, plus **signed business LOIs before 12 Oct** ("N businesses at $X/mo, launching November") as the ARR sentence. Pre-sell, don't pre-build.
 2. **Cold start.** Invite-only helps enormously, but it caps growth by design. You'll need to show the graph compounding, not just existing.
-3. **Vouching is softer than ID.** A determined bad actor with two friends willing to vouch gets in. Your answer: the vouch is public, revocable, and costs the voucher their own standing. It's a social deterrent, not a technical guarantee — say so plainly rather than overclaiming.
+3. **Vouching is softer than ID.** A determined bad actor with friends willing to vouch gets in. Your answer: the vouch is public, revocable, and costs the voucher their own standing. It's a social deterrent, not a technical guarantee — say so plainly rather than overclaiming.
 4. **The rant section is a moderation liability.** Anonymous posting plus a community that came for safety is a combination that goes wrong fast without a real human in the queue. Budget for that in hours, not just dollars.
 
 ---

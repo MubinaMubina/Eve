@@ -1,6 +1,6 @@
 # Eve — Six Weeks to SR008
 
-*Rebuilt 1 Sep 2026. Supersedes the earlier plan, which assumed vertical video and vendor ID verification — both are gone, so this is meaningfully lighter.*
+*Rebuilt 1 Sep 2026, revised 4 Sep. Supersedes the earlier plan, which assumed vertical video and mandatory ID verification. Video is gone. ID verification came back on 4 Sep as one of two optional doors (D18) — vendor-hosted, never stored by Eve — which adds a few days to week 3 and a line to the budget.*
 
 **Priority window opens 12 Oct 2026. Closes 1 Nov.** Submit on the 12th, not the 1st.
 
@@ -30,7 +30,9 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Waitlist page ships this week.** One afternoon. Headline, one-liner, email field. Every conversation ends with a signup.
 
-**Build:** auth (phone OTP, email, DOB gate), the schema — including the `account_type` business stub, so it never needs a migration — RLS policies, and the RLS test suite.
+**Your friend's Apple account — set it up this week.** They add your Apple ID to their App Store Connect team as App Manager, create the app record and the bundle ID (you choose the name), and enable TestFlight. Get a one-line written agreement that the app transfers to you on request. Nothing else about the account is needed until week 4.
+
+**Build:** the Expo project running in the iOS Simulator, with the web export deployed to Vercel Hobby for the waitlist page; auth (email magic link; phone OTP once SMS is funded, DOB gate), the schema — including the `account_type` business stub and the `verifications`, `vouches` and `vouch_policy` tables, so nothing needs a migration later — RLS policies, and the RLS test suite.
 
 ---
 
@@ -46,7 +48,7 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 ## Week 3 · Sep 15–21
 
-**Build:** follows, circles, the "+ add specific people" flow, and the vouch system end to end — tokens, the voucher page, tier transitions, anti-self-vouch checks.
+**Build:** follows, circles, the "+ add specific people" flow, and both verification doors end to end. Path B: vouch tokens, the voucher page, anti-self-vouch checks. Path A: pick the vendor on Monday — the criteria are Pakistani CNIC coverage, a hosted flow, a webhook that returns attributes without images, and a sandbox — then wire the hosted session and the signed webhook. Both doors land in one `recompute_tier` call.
 
 **Users:** line up the founding cohort. Target 30–50 committed women who've agreed to post in week 4, not just to sign up. A member who joins and never posts is worse than no member — she's a person who saw an empty room.
 
@@ -54,7 +56,9 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 ## Week 4 · Sep 22–28
 
-**Build:** rant view, report/block, the moderation queue, and PostHog retention events. Instrument D1/D7/D30 with weekly cohorts — retention only measures forward and you cannot backfill it in October.
+**Build:** rant view, report/block, the moderation queue, push notifications, and PostHog retention events. Instrument D1/D7/D30 with weekly cohorts — retention only measures forward and you cannot backfill it in October.
+
+**First TestFlight build uploaded by Wednesday** through your friend's account, so Beta App Review (a day or two) clears by Friday and the cohort installs from a public link in week 5. App Privacy labels and a privacy-policy URL are required for beta review too — the template terms from week 3 cover it. Report and block are in this build on purpose: Guideline 1.2 requires them for anything with user-generated content.
 
 **Seed the Founders' Board.** The cohort posts *before* anyone else is admitted. Nobody arrives to a blank feed. Do not open beyond the cohort until 20 members have posted.
 
@@ -62,13 +66,15 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 ## Week 5 · Sep 29 – Oct 5
 
-**Private launch.** Cohort invites outward using their vouch budgets. Watch three numbers daily:
+**Private launch, through the TestFlight public link.** Cohort invites outward using their vouch budgets. Watch three numbers daily:
 
-- **Vouch completion rate.** What fraction of started signups get two vouches? Under 50% and that's your most urgent product problem
+- **Verification completion rate, split by door.** What fraction of started signups reach Tier 2, and through which door? Under 50% overall is your most urgent product problem. If nearly everyone takes the ID door, the graph isn't spreading; if nearly everyone takes the vouch door, the ID flow is broken or distrusted
 - **Posts per active member per week.** Below ~1 and the loop isn't closing
 - **W1 retention**, by cohort
 
 **Fix what the numbers say, not what you assumed.** This week exists to be surprised.
+
+**Submit to the App Store early in the week.** Expect one rejection round — anonymous user-generated content gets read closely — and answer it with the moderation queue and the contact address. A released version is also the precondition for transferring the app to your own account later, so this submission matters beyond the listing.
 
 **Business track starts now (sell, don't build):** a one-page business waitlist (*"Reach verified women"*), then pitch 5–10 Pakistani boutique/beauty/fashion brands directly. Target: **signed LOIs at a named monthly price** before 12 Oct — a founding-partner deposit is even better. Business *features* ship after the application; the schema stub already exists.
 
@@ -80,11 +86,11 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Write the application.** The one-liner, the founder story, the metrics.
 
-**Record the demo** — 60–90 seconds, real app, real phone, one take. Sign up, get vouched, open the composer, pick *Women only*, post, then show the same post invisible from a man's account. **That last shot is the entire product in three seconds.** No slides, no music.
+**Record the demo** — 60–90 seconds, the TestFlight or App Store build on a real iPhone, one take. Sign up, get verified, open the composer, pick *Women only*, post, then show the same post invisible from a man's account. **That last shot is the entire product in three seconds.** No slides, no music.
 
 **The ARR sentence:** *"N businesses signed at $X/month, launching to them in November — women's side is free by design."* This is what the LOI track buys you.
 
-**Rehearse three answers:** verification economics (yours is near-zero marginal cost — that's a genuinely good answer, use it); your inclusion policy in one calm sentence; and why Meta won't copy this (Close Friends exists and stays crude because fragmenting reach fights their business model).
+**Rehearse three answers:** verification economics (vouching costs nothing; the instant door costs about $1.50 and Eve never holds the document — say both halves); your inclusion policy in one calm sentence; and why Meta won't copy this (Close Friends exists and stays crude because fragmenting reach fights their business model).
 
 **Submit 12 October.**
 
@@ -97,37 +103,46 @@ Three things run in parallel and only one of them is code. The build is the one 
 | Verified members | 150 | 600+ |
 | Posting weekly | 40 | 200+ |
 | W1 retention | 25% | 40%+ |
-| Vouch completion | 50% | 75%+ |
+| Verification completion | 50% | 75%+ |
 | Waitlist | 300 | 1,500+ |
 
 ---
 
 ## Budget
 
+**Zero-budget mode from 4 Sep (D27).** Everything below is what the plan *would* cost. Nothing is bought until there's money, and then it's bought in the order of the spend ladder in [todo.md](todo.md). The free configuration — email instead of SMS, Path B only, free hosting tiers, template terms for the cohort — is in that file too.
+
 | Item | Cost |
 |---|---|
-| SMS (Twilio Verify + Lookup) | ~$0.05/user — **your only per-user cost** |
+| SMS (Twilio Verify + Lookup) | ~$0.05/user — every user |
+| ID check (Path A) | ~$1–2 per user who chooses it — ~$450 if half of 600 members do |
 | Hosting (Vercel, Supabase, PostHog) | ~$50/mo |
 | Legal review (terms, privacy, moderation policy) | $1–3k |
-| **Total to 12 Oct** | **~$1.5–3.5k** |
+| **Total to 12 Oct** | **~$2–4k** |
 
-Dropping ID verification and video removed almost all the variable cost — at 600 users your verification spend is about **thirty dollars** in SMS. That's a strong answer when they ask about unit economics.
+Dropping video removed the infrastructure cost. Verification is now two doors: SMS for everyone (about **thirty dollars** at 600 users) plus a vendor fee only for those who choose the instant check — worst case, every member takes it, about **$1,000**. The honest unit-economics answer is *"under two dollars a member, falling toward zero as the graph takes over from the vendor."*
 
 Legal review is now the dominant line, and it's the one not to cut: you're launching a platform where women post sensitive content anonymously. Terms, privacy policy, and a written moderation policy before real users arrive.
 
-**No Apple Developer enrollment** ($99) and **no incorporation** ($500) before October — see below.
+**No Apple Developer enrollment** ($99) — the app ships through a friend's account, see *Platform* — and **no incorporation** ($500) before October.
+
+---
+
+## Platform — native iOS first, through a friend's account *(revised 4 Sep, D28)*
+
+**Your call: a native app for iOS and Android, iOS first, shipped through a friend's Apple Developer account, at zero cost.** This reverses the 1 Sep plan (PWA only). The earlier argument still holds and is worth keeping in view: every user arrives through a vouch link, and *tap link → App Store → download → find your way back* is friction in the funnel 8.1 names as your top risk. Universal links soften it — the link opens the app when it's installed and a web page when it isn't — but the install step is real. Measure it.
+
+**What's free:** Xcode, the Simulator, and free personal signing to run on your own iPhone (7-day certificates, re-sign weekly). Expo, `expo-router`, `expo-notifications`, APNs. Your friend's account gives you TestFlight — a public link for up to 10,000 testers, after a lighter Beta App Review — and the App Store submission. Build locally with Xcode rather than on EAS, whose free tier caps builds per month.
+
+**What it forbids:** see [architecture.md §1.1](architecture.md) — no Sign in with Apple, no iCloud or purchase entitlements, a bundle ID you'd keep, and a released version before a transfer is possible.
+
+**What's not free:** Android. Same Expo codebase, but Google Play Console is a one-time $25, and new personal accounts must run a closed test (currently 12+ testers for 14 days — verify the numbers when you pay) before production. Pakistan is overwhelmingly Android, so this is ladder #3 in [todo.md](todo.md): the seed cohort must be iPhone users until it's paid.
+
+**Apple org enrollment later.** When you incorporate, enrol as an organization (needs a D-U-N-S, allow 5 business days) and use App Transfer. Ratings, reviews and download history move with it; the recipient has 60 days to accept.
 
 ---
 
 ## Deferred until there's a trigger
-
-Two things the earlier plan had in week 1 that shouldn't be there.
-
-### The App Store
-
-**Ship the PWA only.** Every user arrives through a vouch link — tap from WhatsApp, land in Eve, join. Inserting *tap link → App Store → download → find your way back* adds friction to the exact funnel 8.1 names as your top risk. A PWA installs to the home screen, opens from a link, ships fixes in minutes instead of review cycles, and supports web push on iOS 16.4+. With no video in v1, nothing needs native.
-
-Consequence: **no Apple org enrollment, so no D-U-N-S deadline** — which is what made incorporation urgent in the first place.
 
 ### Incorporation
 
@@ -153,7 +168,7 @@ What it actually costs once you start: **$1,000–2,000 every year**, revenue or
 
 **Building instead of recruiting.** The cohort is the product. Code with nobody in it demos nothing.
 
-**Vouch friction eating the funnel.** Measure it from day one and treat it as a product surface you iterate on, not a fixed cost.
+**Verification friction eating the funnel.** Measure both doors from day one and treat them as a product surface you iterate on, not a fixed cost.
 
 ---
 

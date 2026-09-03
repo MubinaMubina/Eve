@@ -20,13 +20,28 @@ So: Postgres Row Level Security is the enforcement layer, the API is a convenien
 
 | Layer | Choice | Why |
 |---|---|---|
-| App | Next.js 15 + TypeScript, deployed on Vercel | Mobile-web PWA, installable, ships in minutes |
+| App | Expo (React Native) + TypeScript. One codebase: native iOS first, Android next, web export for the pages non-members touch | Native was your call (D28). Expo keeps iOS, Android and the voucher web page in one repo |
+| Web pages | Expo web export on Vercel Hobby | Waitlist, the voucher page (vouchers may have no account and won't install an app to vouch), the vouch-link landing page |
+| Distribution | A friend's Apple Developer account: TestFlight public link for the cohort, App Store after. App Transfer to your own account later | Zero cost now. §1.1 lists what this forbids |
 | Data & auth | Supabase (Postgres 15+) | **RLS is the reason.** Auth, storage and Postgres in one, and RLS gives us database-level authorization |
 | Images | Supabase Storage, signed URLs | No video in v1, so no transcoding pipeline needed |
-| SMS | Twilio Verify + Lookup | Lookup blocks VoIP and virtual numbers |
-| Email | Resend | Magic links, vouch notifications |
+| SMS | Twilio Verify + Lookup — **off until funded (D27)** | Lookup blocks VoIP and virtual numbers |
+| Email | Supabase Auth over Gmail SMTP at launch → Resend once there's a domain | Magic links, vouch notifications |
 | Analytics | PostHog | Cohort retention — instrument from commit one |
-| Fingerprint | FingerprintJS (open-source build) | Anti-self-vouch signal only, never an identity |
+| Fingerprint | FingerprintJS (open-source build) on web; device install id + `expo-application` on native | Anti-self-vouch signal only, never an identity |
+| Push | APNs via `expo-notifications` | Free. Vouch requests and replies |
+
+### 1.1 What shipping through someone else's Apple account forbids
+
+The app will be transferred to your own account later. To keep that possible and painless:
+
+- **No Sign in with Apple.** Its user identifiers are team-scoped; after a transfer every user silently gets a new account unless migrated inside a 60-day window (TN3159). Email and phone auth mean the problem never exists. Apple only mandates Sign in with Apple when you offer other social logins, and we don't.
+- **No iCloud, Game Center, Wallet or in-app purchase entitlements.** Some block a transfer outright, all complicate it. Entitlements are exactly two: push notifications and associated domains.
+- **The bundle ID travels with the app.** Name it as if you'll keep it forever, because you will.
+- **A transfer needs at least one released App Store version.** TestFlight alone doesn't count. The week-5 App Store submission is also what makes the app yours to move.
+- **The vouch page is web, not native.** A voucher may have no account and won't install an app to say yes. Universal links (associated domains, with the `apple-app-site-association` file served from the web export) open the app when it's installed and fall through to the web page when it isn't.
+- **App Review Guideline 1.2 (user-generated content)** requires filtering, reporting, blocking and a published contact address *before* the first submission, not after. Report and block ship in the submission build, not in v1.1. Anonymous posting draws extra scrutiny, so the moderation queue must visibly exist.
+| ID check (Path A) | Persona / Veriff / Stripe Identity — pick in week 3 | Vendor-hosted capture. We receive four attributes by webhook and never an image |
 
 ---
 
@@ -38,8 +53,10 @@ Notes before the schema: **all primary keys are UUIDs, never sequential integers
 -- ─────────────── identity ───────────────
 create table users (
   id                uuid primary key default gen_random_uuid(),
-  phone_e164        text unique not null,
-  email             citext unique,
+  -- D27: email is the identity at launch (zero budget); phone becomes required once SMS is funded.
+  -- Unique when present either way, so one-account-per-number is enforced from the day it exists.
+  phone_e164        text unique,
+  email             citext unique not null,
   handle            citext unique not null,
   display_name      text,
 
@@ -59,6 +76,10 @@ create table users (
 
   seasoned_at       timestamptz,             -- when they became eligible to vouch (tier 3)
   vouch_budget      smallint not null default 3,
+
+  -- 7.4: likes and follower counts are private to the owner until she opts in,
+  -- and she can only opt in 30 days after signup (enforced by the update policy in §3)
+  stats_public_at   timestamptz,
 
   status            text not null default 'active'
                     check (status in ('active','suspended','banned')),
@@ -116,6 +137,65 @@ create table post_extra_viewers (
   user_id uuid not null references users(id) on delete cascade,
   primary key (post_id, user_id)
 );
+
+-- ─────────────── verification: two doors, one tier ───────────────
+-- Nothing in these tables is ever an image, a document number, or a face.
+
+-- Path A: the vendor ID check. Exactly the four fields the webhook gives us are written.
+create table verifications (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references users(id) on delete cascade,
+  vendor        text not null,        -- 'persona' | 'veriff' | 'stripe_identity'
+  vendor_ref    text not null,        -- their session id, so we can re-query; never content
+  outcome       text not null check (outcome in ('passed','failed','abandoned')),
+  sex_matches   boolean,              -- document sex marker == declared_gender at time of check
+  dob_matches   boolean,              -- document DOB == declared dob
+  liveness_ok   boolean,
+  dedup_key     text,                 -- vendor-computed one-way key for the document; blocks one ID verifying two accounts
+  status        text not null default 'current' check (status in ('current','superseded')),
+  created_at    timestamptz not null default now()
+);
+create unique index verifications_one_doc_one_account
+  on verifications (dedup_key) where outcome = 'passed' and status = 'current';
+
+-- Path B: vouches. Three kinds — see product-v1 §Vouches.
+create table vouches (
+  id                    uuid primary key default gen_random_uuid(),
+  applicant_id          uuid not null references users(id) on delete cascade,
+  kind                  text not null check (kind in ('member','team','phone')),
+  voucher_user_id       uuid references users(id),   -- member / team vouches
+  voucher_phone_e164    text,                         -- phone vouches: no account needed
+  token_hash            bytea not null,               -- sha256 of a 32-byte CSPRNG token; never the token itself
+  status                text not null default 'pending'
+                        check (status in ('pending','affirmed','declined','expired','revoked')),
+  declaration_confirmed boolean,   -- "Ali signed up as a woman. Accurate, to your knowledge?" — the gender check lives here
+  device_fp             text,
+  ip                    inet,
+  expires_at            timestamptz not null default now() + interval '24 hours',
+  decided_at            timestamptz,
+  created_at            timestamptz not null default now(),
+  constraint voucher_identity check (
+    (kind in ('member','team') and voucher_user_id is not null)
+    or (kind = 'phone' and voucher_phone_e164 is not null)
+  ),
+  constraint not_self check (voucher_user_id is distinct from applicant_id)
+);
+
+-- A voucher's phone is the collateral. Banned account → its vouchers' numbers land here, permanently.
+create table burned_phones (
+  phone_e164 text primary key,
+  burned_at  timestamptz not null default now(),
+  reason     text
+);
+
+-- D19/D24: how many vouches Tier 2 needs. Config, not code paths. Latest row wins.
+create table vouch_policy (
+  effective_from        timestamptz primary key default now(),
+  member_required       smallint not null,   -- launch 1 → maturity 2
+  phone_required        smallint not null,   -- launch 0 → growth 1
+  team_counts_as_member boolean not null default true
+);
+insert into vouch_policy (member_required, phone_required) values (1, 0);   -- launch phase
 ```
 
 ### The gender-change hole
@@ -130,6 +210,8 @@ begin
     new.tier          := least(old.tier, 1);   -- drop out of Tier 2+
     new.gender_set_at := now();
     delete from vouches where applicant_id = new.id;  -- must be re-vouched
+    update verifications set status = 'superseded'    -- the ID match was against the old declaration
+      where user_id = new.id;
   end if;
   return new;
 end $$;
@@ -139,7 +221,7 @@ create trigger trg_gender_change
   for each row execute function invalidate_tier_on_gender_change();
 ```
 
-Changing your declared gender is legitimate and must stay possible. It just costs you re-vouching, which is the honest price — the vouchers confirmed a specific declaration, and the declaration changed.
+Changing your declared gender is legitimate and must stay possible. It just costs you re-verifying, through either door, which is the honest price — the vouchers or the document confirmed a specific declaration, and the declaration changed.
 
 ---
 
@@ -190,9 +272,22 @@ create policy posts_read on posts for select
 
 create policy posts_write on posts for insert
   with check (author_id = auth.uid());
+
+-- Profile edits: your own row only, a whitelist of columns, and counts can't go
+-- public in the first 30 days (7.4). tier, status and vouch_budget are never
+-- client-writable — they move only through recompute_tier and moderation.
+revoke update on users from authenticated;
+grant  update (display_name, email, declared_gender, stats_public_at) on users to authenticated;
+
+create policy users_self_update on users for update
+  using (id = auth.uid())
+  with check (
+    id = auth.uid()
+    and (stats_public_at is null or created_at <= now() - interval '30 days')
+  );
 ```
 
-**Read the `women` branch carefully — it is the whole product.** Declared gender alone is not enough; `tier >= 2` means the declaration has been confirmed by two people who know them. Someone who lies at signup sits at Tier 1 and this branch returns false for them, forever, until vouched.
+**Read the `women` branch carefully — it is the whole product.** Declared gender alone is not enough; `tier >= 2` means the declaration has been confirmed — by a document check at a vendor, or by people who know them (§3.1). Someone who lies at signup sits at Tier 1 and this branch returns false for them, forever, until verified.
 
 ### Why evaluation happens at read time
 
@@ -201,6 +296,54 @@ Circle membership, follows, and tier all change. Evaluating at read time means *
 Read-time evaluation costs performance. That trade is correct here, and §5 covers how to keep it fast.
 
 ---
+
+### 3.1 Reaching Tier 2 — one function, two doors
+
+Both doors end in the same call. Nothing else writes `tier`.
+
+```sql
+create or replace function recompute_tier(u uuid) returns void language plpgsql as $$
+declare
+  pol     vouch_policy;
+  members int; phones int;
+  id_pass boolean;
+  t       smallint := 1;
+begin
+  -- businesses never reach Tier 2, whatever the tables say
+  if exists (select 1 from users where id = u and account_type <> 'personal') then return; end if;
+
+  select * into pol from vouch_policy order by effective_from desc limit 1;
+
+  -- Path B: affirmed vouches that also confirmed the declaration
+  select count(*) filter (where kind = 'member' or (kind = 'team' and pol.team_counts_as_member)),
+         count(*) filter (where kind = 'phone')
+    into members, phones
+    from vouches
+   where applicant_id = u and status = 'affirmed' and declaration_confirmed;
+
+  -- Path A: a current, passed check whose document agrees with the declaration
+  select exists (
+    select 1 from verifications
+     where user_id = u and status = 'current' and outcome = 'passed'
+       and sex_matches and dob_matches
+  ) into id_pass;
+
+  if id_pass or (members >= pol.member_required and phones >= pol.phone_required) then
+    t := 2;
+  end if;
+
+  -- never demote here. Demotion is explicit: a ban, or the gender-change trigger.
+  update users set tier = greatest(tier, t) where id = u;
+end $$;
+```
+
+Rules this encodes:
+
+- **Path A grants Tier 2 on its own.** Same rule for every declared gender — a man with an M document and a "man" declaration passes too, and the `women` branch still excludes him. The asymmetry lives in the content filter, never in the door.
+- **A mismatch is never explained.** When `sex_matches` is false the user is not told what the document said; she simply sees the vouch door. This is the trans-woman path and the misread path, and they look identical from outside.
+- **Policy tightening never demotes.** `greatest(tier, t)` means moving `vouch_policy` from 1 to 2 member vouches affects only people not yet at Tier 2.
+- **Tier 3 is a daily job**, not this function: `tier = 2`, `created_at` older than 7 days, no strikes → `tier = 3`, `seasoned_at = now()`.
+- Call it from the vendor webhook handler and from the vouch-affirm endpoint. Call it also from a nightly sweep so a missed webhook can't strand anyone.
 
 ### Business accounts (schema stub now, features post-launch)
 
@@ -247,6 +390,10 @@ join users u on u.id = p.author_id;
 1. **Post counts.** A profile showing "24 posts" when 19 are visible tells you five are hidden. Count only non-anonymous posts in public profile stats.
 2. **Ordering and IDs.** UUIDv4, not v7 or sequential — v7 embeds a timestamp, which correlates an anonymous post with anything else posted at that moment.
 3. **Style and timing.** Unsolvable technically. A small community will sometimes recognise a voice. Say so in the UI copy — "anonymous to other members" is honest; "completely anonymous" is not.
+
+### Profile counts (7.4)
+
+Follower and like counts are private to the owner by default. The profile view exposes them only when `stats_public_at is not null` or the viewer is the owner; the update policy in §3 stops anyone flipping it in their first 30 days. Enforce this in the view, not the client — a public count is the one scoreboard 7.5 says we don't copy, so leaking it through an API is a product bug, not a cosmetic one.
 
 ---
 
@@ -333,7 +480,7 @@ Day one is a design problem, not a content problem. Your 4.5 answer already had 
 
 **Never render a blank feed.** A first-run feed shows the Founders' Board — real posts and real anonymous rants from the founding cohort, seeded before anyone else is admitted. Do not open signups until 20 members have posted.
 
-**Tier 1 users see a marker, not a void.** Where women-only content would be, an explicit line: *"Some posts here are visible to verified members. Get two vouches to see them."* Absence should be legible. An empty feed reads as a dead app; a feed that tells you what you're missing reads as a door.
+**Tier 1 users see a marker, not a void.** Where women-only content would be, an explicit line: *"Some posts here are visible to verified members. Verify your account to see them."* — with both doors one tap away. Absence should be legible. An empty feed reads as a dead app; a feed that tells you what you're missing reads as a door.
 
 **Every empty state names the next action.** No illustrations of empty boxes, no "Nothing here yet."
 
@@ -342,8 +489,9 @@ Day one is a design problem, not a content problem. Your 4.5 answer already had 
 ## 8. Security checklist
 
 **Authentication**
-- OTP: 6 digits, 10-minute expiry, max 5 per phone per hour, 10 per IP per hour, lockout after 5 failed attempts
-- **Never leak registration status.** "We've sent a code" is the response whether or not the number exists — anything else is a user-enumeration oracle
+- Launch (D27, zero budget): email magic link only. Single-use, 10-minute expiry, max 5 per address per hour, 10 per IP per hour
+- When SMS is funded — OTP: 6 digits, 10-minute expiry, max 5 per phone per hour, 10 per IP per hour, lockout after 5 failed attempts
+- **Never leak registration status.** "We've sent a link" (or "a code") is the response whether or not the address or number exists — anything else is a user-enumeration oracle
 - Twilio Lookup rejects VoIP and non-mobile numbers at signup
 
 **Vouch tokens**
@@ -359,7 +507,9 @@ Day one is a design problem, not a content problem. Your 4.5 answer already had 
 **Data**
 - RLS on every table. `security_invoker` on every view. Verify with a test that queries as each tier
 - Signed URLs for media, short expiry. A public bucket makes every audience rule decorative — the image URL leaks the content regardless of who can see the post
-- Store `verification_status`, `vouch` records and phone numbers. Never ID documents, never selfies, never face data
+- Store `verifications` (four attributes), `vouches` and phone numbers. Never ID documents, never selfies, never face data
+- Vendor webhooks: verify the signature, then write only the four fields. Never call the vendor's document or image endpoints, even though they exist — scope the API key so it can't
+- One document, one account is enforced by the vendor's one-way `dedup_key`, never by Eve holding a document number
 
 **Honest limits — write these in the product copy, don't hide them**
 - **Screenshots cannot be prevented.** Not on web, not meaningfully on native. A woman posting to women only is protected from the wrong audience seeing it *in the app*, not from a member betraying her. Handle it in terms of service, reporting and consequences — and say so plainly rather than implying a guarantee you can't keep
@@ -370,12 +520,12 @@ Day one is a design problem, not a content problem. Your 4.5 answer already had 
 
 ## 9. What to build in what order
 
-1. Auth: phone OTP, email, DOB gate, one-account-per-number
+1. Auth: email magic link, DOB gate, one-account-per-email (phone OTP and one-account-per-number when SMS is funded)
 2. Schema, RLS policies, and **the RLS test suite** — write the tests with the policies, not after
 3. Composer with both dials, and the posts table behind it
 4. Feed with cursor pagination
 5. Follows, circles, the "+ add people" flow
-6. Vouch flow: tokens, the voucher page, tier transitions
+6. Verification, both doors: vendor hosted flow + signed webhook (Path A); vouch tokens, the voucher page, anti-self-vouch checks (Path B); `recompute_tier` and `vouch_policy`
 7. Rant view (an index and a filter, at this point)
 8. Report, block, moderation queue
 9. PostHog retention events
