@@ -1,10 +1,13 @@
 # Eve — Conversation Log
 
-*Working sessions, 30 Aug – 1 Sep 2026. This is a record of what was decided and why, not a transcript. The reasoning is the valuable part — the conclusions alone won't survive contact with a co-founder or an investor question.*
+*Working sessions, 30 Aug – 4 Sep 2026. This is a record of what was decided and why, not a transcript. The reasoning is the valuable part — the conclusions alone won't survive contact with a co-founder or an investor question.*
 
 **Files in this project**
 - [questions-before-code.md](questions-before-code.md) — the 39-question thinking pass, with your answers
-- [product-v1.md](product-v1.md) — product spec. **Its verification section is now out of date** — superseded by the decisions below
+- [product-v1.md](product-v1.md) — product spec, current as of 4 Sep
+- [architecture.md](architecture.md) — composer, feed, data model, authorization, security
+- [roadmap.md](roadmap.md) — the rebuilt six weeks
+- [todo.md](todo.md) — the checklist, the zero-budget configuration, and the spend ladder
 - [conversation-log.md](conversation-log.md) — this file
 
 ---
@@ -98,8 +101,88 @@ Dropping the camera also dissolved the minors problem — that was only serious 
 ### D11 — Video cut from v1
 Text and images only. Video means transcoding, CDN, storage cost and about a week. "Post the thing you wouldn't otherwise post" is mostly words and pictures.
 
-### D12 — Mobile web PWA before native
-No app store review delay, opens from a link, ships fixes in minutes. Native is a v2 decision.
+### D12 — Mobile web PWA before native *(superseded by D28)*
+No app store review delay, opens from a link, ships fixes in minutes. Native is a v2 decision. — *Reversed 4 Sep: native iOS first, through a friend's Apple account. The link-to-install friction argument survives as a metric to watch, not a reason not to ship.*
+
+### D13 — Path 2 is a waitlist, not an adjudication *(corrects D5)*
+As first described, Path 2 had a hole: asking a reviewer to judge "is this a woman" from a profile reintroduces the biased, company-made determination that D4 removed — an ML classifier with a human in the chair, arguably worse legally because there is someone to depose.
+
+**Fixed:** the code check establishes only *"a real person with real history controls this account."* Eve's team then **invites** from the resulting waitlist. Choosing whom to invite is a normal invite-only-network activity; ruling on a gender claim is not.
+
+Also: **never accept media from the applicant.** Screen recordings can be generated. The reviewer opens `instagram.com/[handle]` directly — a human viewing a public page, which is not scraping. The only thing that can't be faked is time, so account age and presence in *other people's* accounts are the signals that matter.
+
+### D14 — Rules are identical for everyone
+Same flow, same two vouches, regardless of declared gender. A men-only rule requires determining who is a man — the adjudication we removed — and it's trivially bypassed by declaring female. Differential treatment by declared gender is also the *Tickle v Giggle* exposure.
+
+**The gender check moved into the vouch form:** vouchers are shown the applicant's declaration and asked to confirm it. Eve never decides; it records what people who know the applicant said.
+
+**The asymmetry lives in the content filter, not the entry gate.** A man can be a full member and still never see a *Women only* post.
+
+### D15 — No carve-out for gay men *(your call)*
+Any exception would have to be self-declared, so any man wanting into women-only spaces would simply declare himself gay — a filter with a checkbox bypass. It also avoids recording anything about sexuality, which is special-category data under GDPR.
+
+Where a woman wants specific men included, **circles and "+ add specific people" already do it**, per post, by her choice. Better than a platform-level category, and it costs nothing since circles are already in v1.
+
+### D16 — "Women only" means women only *(rejected: the mutual-follow exception)*
+Proposed: *Women only* would still include men she follows back, with a note under the control.
+
+**Rejected.** The failure mode is the central use case of the app breaking: she posts something vulnerable, selects the label that means safe, and a cousin, a colleague and an ex all see it. Warning microcopy doesn't save it — bold "Women only" beats grey caveat text every time, especially on the 1am post. And mutual-follow is a *social obligation*, not a trust signal; using it as the boundary imports exactly the population the app exists to escape.
+
+**Instead:** she picks *Women only*, then optionally taps **"+ add specific people"** and names them. Same need served, guarantee intact, and she knows who's there because she just put them there.
+
+**The principle:** the safe option is the simple option, and every exception costs an action. Never a reassuring label with a quiet carve-out inside it. It also means the answer to *"does women only mean women only?"* is one word.
+
+### D17 — Architecture decisions *(see [architecture.md](architecture.md))*
+- **Authorization in Postgres RLS, not application code.** Per-post visibility enforced in app code fails the first time someone writes a query that forgets the filter
+- **Read-time evaluation**, so removing someone from a circle immediately revokes access to every past post to it
+- **Clients never read `posts`** — only a `security_invoker` view that nulls `author_id` on anonymous rows
+- **UUIDv4 keys**, never sequential and not v7 (v7 embeds a timestamp, which correlates anonymous posts)
+- **A gender change drops you out of Tier 2 and deletes your vouches.** Vouchers confirmed a specific declaration; if it changes, it needs re-confirming
+- **Audience control sits above the text field.** Choosing the room before you speak is the correct order and it's the product's whole thesis
+- **First-ever default is Women only.** The default's failure mode must be disappointment, not exposure
+- **Screenshots cannot be prevented.** Say so in the copy rather than implying a guarantee that can't be kept
+
+### D18 — Dual-path verification *(revises D3/D4: "no ID anywhere" → "no ID stored by Eve")*
+Tea's numbers broke the friction objection: 1.7M women uploaded IDs to a safety app that hit #1 in the US. What survived Tea is the *storage* rule, hardened by its breach (72k IDs/selfies in a public bucket, five consolidated federal class actions): **vendor-hosted capture, attributes by webhook, no image ever touches Eve.**
+
+So: **Path A** — vendor ID/liveness (~$1–2, instant, solves the bootstrap problem that vouch-only had). **Path B** — vouching (free, always available; the route for trans women, ID-refusers, and anyone Path A misreads — and the legal defence: Eve never excludes on a document, never adjudicates gender). Face gender estimation, if used at all, is a fast-track *signal, never a decision* — silent fallback to Path B, no algorithmic rejection ever.
+
+### D19 — Vouch strictness ramps with graph size *(fixes the bootstrap collapse)*
+Requiring two member-vouches at 50 members means newcomers need to sit in the *intersection* of two members' networks — the graph grows dense, not wide. Fix: phase the requirement (launch: 1 member vouch or team invite, big budgets; growth: 1 member + 1 phone-verified anyone; maturity: 2 member vouches). Config, not code paths. Plus **cascading revocation**: a banned account burns its vouchers' rights; corrupt subtrees get cut whole; fraud-ring detection (tight reciprocal clusters, narrow signup windows, shared fingerprints) is a weekly SQL report from day one.
+
+### D20 — Business accounts: storefronts, not members *(your idea, 4 Sep)*
+Two-sided network: women are the community (free), businesses pay for access. The rule that closes the "any man registers a business" loophole structurally: **businesses can be seen but cannot see** — broadcast-only, no browsing personal content, no women-only access ever, no initiating contact, own-posts-and-analytics only. KYB verification (registration, domain email, Stripe card — payment is itself a fraud filter), no gender question exists for them. Schema stub (`account_type`) ships in week 1; features ship after 12 Oct.
+
+### D21 — Monetization *(closes the "no revenue" gap)*
+Women free (marketplace logic + Pakistan PPP). Business subscriptions in tiers — the Growth tier sells the audience-composition dashboard, which is the original "97% women" idea returning as the B2B product. Creator/PR marketplace at 10–15% take — bot-free influencer metrics by construction. "No ads ever" revised to a keepable promise: *personal feeds are never for sale; businesses live in labeled spaces you choose to follow.* Benchmark from Tea: $2.4M ARR at 1.7M users (~1% conversion, $14.99/mo) — subscriptions alone are a floor, not a venture story; the venture story is commerce + the trust graph. Pre-October play: **signed business LOIs, not built features.**
+
+### D22 — Path A grants Tier 2 on its own; both doors invalidate together *(4 Sep, reconciliation pass)*
+D18 added the ID door to product-v1 but architecture still only knew about vouches. Resolved: a `verifications` table holds exactly the four webhook fields (passed, sex marker matches declaration, DOB matches, vendor dedup key). A pass grants Tier 2 directly, under the same rule for every declared gender — D14 holds, because a man with an M document and a "man" declaration also passes and the women-only branch still excludes him. A mismatch is never explained to the user; she just sees the vouch door, so the trans-woman path and the misread path look identical from outside. A change of declared gender supersedes the ID check the same way it deletes vouches (D17), since both confirmed the old declaration. One `recompute_tier` function reads both doors and the current policy, and nothing else writes `tier`.
+
+### D23 — Vocabulary: member vouch, phone vouch, team invite, the waitlist
+"Voucher A/B" collided with "Path A/B", and "Path 2" made it worse. Renamed: **member vouch** (a Tier 3 member, or a team invite that counts the same), **phone vouch** (anyone with a verified number), and **the waitlist** for people who know nobody. Tier 2 is "Verified", not "Vouched", since either door reaches it.
+
+### D24 — Ramp thresholds are config with starting numbers
+D19 named the phases but not the numbers. Starting values: launch (under ~200 members) 1 member vouch; growth (~200–2,000) 1 member + 1 phone; maturity (2,000+) 2 member vouches. A `vouch_policy` table, latest row wins. These are guesses to be tuned from the completion rate, and tightening never demotes anyone already verified.
+
+### D25 — Follower and like counts are private by default *(from your 7.4)*
+Was answered in the questionnaire and written nowhere else. Now in the spec: counts are visible only to the owner; she can make them public after 30 days, enforced by the update policy on `users.stats_public_at`. Consistent with 7.5 — no clout scoreboards.
+
+### D26 — Roadmap and budget re-cut for two doors
+The 1 Sep roadmap said ID verification was gone; D18 brought it back three days later and the plan wasn't touched. Week 3 now includes vendor selection and the webhook; the budget carries ~$1–2 per member who picks the instant door; the unit-economics line becomes "under two dollars a member, falling toward zero as the graph takes over." The daily metric is completion rate *split by door*, because the split itself is a signal about whether the graph is spreading.
+
+### D27 — Zero-budget launch, with a spend ladder *(your call, 4 Sep)*
+Budget is zero until further notice. Everything paid was swapped for a free path without changing the design: email magic link instead of SMS (Tier 1 becomes "contact verified"; phone comes back unchanged when funded); Path B only, since the launch policy needs one member vouch and no phone vouch anyway; free tiers of Vercel, Supabase and PostHog; a vercel.app subdomain; template terms for the hand-invited cohort. What this costs, said plainly: email is a weaker identity than phone, which is acceptable only because a member vouch is required to get in at all; and there are no reviewed terms, which is acceptable only while every member was personally invited. When money arrives it goes in a fixed order — domain, visa fee, SMS, legal review, hosting, the ID vendor, incorporation — each with a trigger. Legal review is a hard gate before opening past the cohort. Full list in [todo.md](todo.md).
+
+### D28 — Native iOS first, through a friend's Apple account; Android next *(your call, 4 Sep — reverses D12)*
+A native app for both platforms, iOS first, zero cost. Expo keeps iOS, Android and the web pages non-members touch (waitlist, voucher page) in one codebase. Free path: Xcode and the Simulator, free personal signing on your own iPhone, local builds instead of EAS's capped free tier, and the friend's account for TestFlight (public link, up to 10,000 testers, lighter beta review) and the App Store submission.
+
+*What it costs, plainly:* the install step is back in the vouch-link funnel — universal links soften it, the metric watches it. App Review cycles replace ship-in-minutes. Report, block and a moderation queue must exist before the first submission (Guideline 1.2), which they do in week 4. The app is legally the friend's until transferred, and a transfer needs a released App Store version — so the week-5 submission is what makes the app movable. Pakistan is overwhelmingly Android, so until the $25 Play fee is paid the seed cohort has to be iPhone users; Android is ladder #3.
+
+*What it forbids* (architecture §1.1): Sign in with Apple, iCloud / Game Center / Wallet / IAP entitlements, a throwaway bundle ID. Entitlements are push and associated domains only.
+
+### D29 — Apply to YC, SPEEDRUN and Founders Inc, in that order of priority *(4 Sep)*
+Not exclusive at application stage, same demo for all three. **YC** is the primary bet: dozens of Pakistani portfolio companies (partners know the market and the visa path), $500K committed on acceptance, indifferent to student status or degrees, the strongest brand for a solo founder raising a seed, and a 2 Nov deadline that lands three weeks after SPEEDRUN with more data. **SPEEDRUN** stays co-primary as the best thesis fit (consumer, Andrew Chen) with more upfront cash at a higher valuation; the risk is a cohort skewed to AI and revenue. **Founders Inc** Canopy is the safety net: five weeks, online option, ~15% admission, small money at demo day — the only one that works if the Bangkok B-1 fails. Neither in-person program pays a stipend; both fund the move through the investment, with a ~$4–5k bridge before the wire lands (todo §7). Social media is a founder-run track from week 1 (todo §6), with the rule that marketing never spends the product's privacy promise.
 
 ---
 
@@ -134,7 +217,11 @@ No app store review delay, opens from a link, ships fixes in minutes. Native is 
 ### Apple
 - **App Transfer** moves an app between accounts. Requires at least one released version, and no pending review states. Ratings, reviews, IAP, subscribers and download history all transfer. Recipient has 60 days to accept.
 - **Sign in with Apple identifiers are team-scoped.** Migrate them within the 60-day window (TN3159) or every user silently gets a new account. **Avoid this entirely by not offering Sign in with Apple** — Apple only requires it if you offer other third-party social logins. Phone auth only means the problem never exists.
-- You can enroll as an **individual** today: $99/year, no company, no D-U-N-S. Individual → organization later is the same App Transfer process, minus the ownership ambiguity of using a friend's account.
+- You can enroll as an **individual** today: $99/year, no company, no D-U-N-S. Individual → organization later is the same App Transfer process, minus the ownership ambiguity of using a friend's account. *(D28 chose the friend's account anyway, for zero cost; the ambiguity is handled by a written one-line agreement and by shipping a released version early so a transfer is possible.)*
+- **TestFlight:** external testers via a public link, up to 10,000, after Beta App Review (lighter than App Review). Internal testers must be App Store Connect users on the account's team — not usable for a cohort on a friend's account. Builds expire after 90 days.
+- **Guideline 1.2 (user-generated content):** filtering, reporting, blocking, and a published contact address are required at first submission. Anonymous UGC is read closely.
+- **Free personal signing:** run on your own device with any Apple ID — 7-day provisioning, up to 3 apps, no paid account. Enough for development, not for distribution.
+- **Google Play:** $25 one-time. Personal developer accounts created after Nov 2023 must pass a closed test (12+ testers, 14 days at last check — verify) before production access.
 - From **28 Apr 2026**, uploads must be built with Xcode 26 / iOS 26 SDK.
 
 ### Social platform APIs
@@ -146,17 +233,25 @@ No app store review delay, opens from a link, ships fixes in minutes. Native is 
 - **GDPR Article 9** — biometrics used for identification are special-category data.
 - ***Tickle v Giggle*** (Australia, 2024) — excluding a trans woman from a women-only app was found to be unlawful discrimination. Mitigated here by Eve never adjudicating gender, a documented appeal path, and your inclusive 0.4 policy.
 
+### Tea (teaforwomen.com) — the category's proof and cautionary tale
+- Founded Nov 2022 by Sean Cook (ex-Salesforce), self-funded, after his mother was catfished. Women-only; required selfie + government ID
+- **Proof of demand:** #1 free app in the US (July 2025), 1M signups in one week, 1.7M+ users, 4.8★
+- **Revenue:** ~$200k/mo (~$2.4M ARR) at $14.99/mo — ~13k subscribers, under 1% conversion. Monetized a *decision* (meeting a stranger tonight), not a habit — Eve cannot copy that price point
+- **The breach (July 2025):** verification images in an unsecured public Firebase bucket for over a year — 13k selfies+IDs, 59k user images, then a second find: 1.1M private messages. FBI involved; five federal class actions consolidated (N.D. Cal.)
+- **Lessons wired into Eve:** never store verification media (D18); DMs stayed cut (their 1.1M messages were the second breach); retention policy from day one (Tea's exposed users were pre-Feb-2024 legacy data); the pitch line *"we can't leak your ID — we never hold it"*
+
 ---
 
 ## 4. Still open
 
-1. **Update [product-v1.md](product-v1.md)** with D3–D9. Its verification section describes the older model — don't build from it.
-2. **The verb (3.2).** "Share" is too weak; every app is share. Yours is closer to *choose*, or *decide who sees this*.
-3. **2.4 — do your users describe the problem the way you do?** Unanswered. It's an interview question, not a thinking question. Ask the seven women in your 2.1 list.
-4. **3.4 — what people get wrong when they repeat your one-liner.** Only learnable by saying it out loud to strangers.
-5. **A revenue line.** SPEEDRUN's recent cohorts put ARR in their one-liners. Worth deciding whether anything in Eve can carry a price before October.
-6. **Rebuild the six-week roadmap.** The original assumed vertical video and ID verification. Both are gone; the plan is meaningfully more achievable now.
-7. **Design work has barely started.** The composer, the feed, and the day-one experience have had a fraction of the attention verification received.
+*Cleared 4 Sep: product-v1 updated (D18–D21), revenue line (D21), roadmap rebuilt and re-cut (D26).*
+
+1. **The verb (3.2).** "Share" is too weak; every app is share. Yours is closer to *choose*, or *decide who sees this*.
+2. **2.4 — do your users describe the problem the way you do?** Unanswered. It's an interview question, not a thinking question. Ask the seven women in your 2.1 list.
+3. **3.4 — what people get wrong when they repeat your one-liner.** Only learnable by saying it out loud to strangers.
+4. **Pick the ID vendor** (week 3). Criteria: Pakistani CNIC coverage, hosted flow, a webhook that returns attributes without images, a sandbox. Persona, Veriff and Stripe Identity are the candidates; nobody has checked CNIC coverage yet.
+5. **Ramp thresholds (D24) are guesses.** Revisit at ~200 members with the completion data in hand.
+6. **Design work has barely started.** The composer, the feed, and the day-one experience have had a fraction of the attention verification received.
 
 ---
 

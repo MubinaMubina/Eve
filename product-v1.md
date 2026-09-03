@@ -1,6 +1,6 @@
 # Eve — Product Definition v1
 
-*Written 31 Aug 2026, from the answers in [questions-before-code.md](questions-before-code.md). This is the version I'd take into an application — react to it, don't accept it.*
+*Started 31 Aug 2026, last updated 4 Sep 2026. **Living document** — decisions here are settled-for-now, not final. When a new idea lands, we argue it out in conversation, then this file gets the verdict. [conversation-log.md](conversation-log.md) keeps the why.*
 
 ---
 
@@ -61,52 +61,133 @@ Two details that make it work:
 
 ---
 
-## Verification: the vouch model
+## Verification: two doors, one tier
 
-### The decision
+*Revised 4 Sep 2026 (supersedes the vouch-only model of 1 Sep). Full mechanics in [architecture.md](architecture.md).*
 
-**No ID documents. No biometrics. No selfie checks. Entry is by vouch.**
+### The prime directive: Eve never stores an image
 
-This isn't a compromise — it's the only architecture that fits the policy you actually stated in 0.4: *mostly women, trans women, then gay men.* No government ID identifies someone as a gay man. Many trans women cannot update their documents. **ID verification structurally cannot implement your inclusion policy.** Vouching can.
+Tea's breach (72,000 verification selfies and government IDs in a public bucket, five consolidated federal class actions) fixed the one non-negotiable rule: **whatever the method, no document, selfie, or face template ever touches Eve's infrastructure.** Vendor-hosted capture, attributes back by webhook, four fields in our database. We cannot leak what we never possessed.
 
-It's also cheaper (no $0.50–2.50 per user), far less legally exposed (no biometric data, so no BIPA or GDPR Article 9 problem), and it makes Eve a *private invite-only network* rather than a company adjudicating who counts as a woman. That distinction matters enormously, both legally and morally.
+### Path A — vendor verification (instant, paid)
 
-### The recommendation I want you to react to
+Vendor-hosted ID + liveness check (Persona / Veriff / Stripe Identity, ~$1–2). Works at user number one, which solves the bootstrap problem vouching alone cannot. Tea proved the friction is survivable: 1.7M women uploaded IDs to a safety app.
 
-You said vouching applies to men. **I think it should apply to everyone**, and here's the hole it closes:
+An optional selfie liveness + dedup check can **fast-track** high-confidence cases — but gender estimation is a *signal, never a decision*: ambiguous or misread users silently fall back to Path B. Nobody is ever rejected by an algorithm, and nobody is told they were misread. (The classifiers are weakest on exactly our users — darker-skinned women, older women, hijabis.)
 
-If signup is open and only men need vouching, a man simply declares himself a woman at signup. Nothing catches him. The entire protection is a dropdown he can lie to.
+What comes back, and all that is ever stored: *passed or failed*, *document sex marker matches the declaration*, *document date of birth matches the declaration*, and a vendor-computed one-way key that stops one document verifying two accounts. **Path A grants Tier 2 by itself** when the first three are true, under the same rule for every declared gender. When the marker doesn't match, the user is never told why; she simply sees the vouch door. Eve pays the vendor fee. Women stay free.
 
-So: **everyone enters by vouch.** Eve is invite-only, and your invite is a vouch from someone already here who knows you personally.
+### Path B — vouching (free, human, always available)
 
-This is not "women need permission." It's the same mechanic every desirable network launched with — early Facebook, Gmail, Clubhouse. And it's worth being precise about a distinction your 8.1 answer collapses: **invite friction is not verification friction.** Verification friction is bureaucratic and insulting — upload your passport, wait, get rejected. Invite friction is social, and it makes a product *more* desirable, not less. An invite from your sister isn't a barrier. It's the reason you join.
+Vouches from people who know you — how many, and of which kind, is a policy setting that tightens as the graph grows (table below). This is the route for trans women whose documents don't match, for anyone unwilling to upload an ID, and for anyone Path A misreads. **Its existence is the legal defence**: Eve never excludes anyone on a document, and Eve never adjudicates gender — the people who know you do.
 
-### How it works
+Voucher strictness ramps with graph size (1 member vouch at launch → 2 at maturity); founding cohort is hand-verified by the founder with large vouch budgets. Cascading revocation: a banned account burns its vouchers' vouching rights, and corrupt subtrees get cut whole.
 
-| | |
-|---|---|
-| **Everyone** | Enters by vouch from an existing member who knows them personally |
-| **Women** | 1 vouch |
-| **Men** | 2 vouches, both from women, both public on his profile |
-| **Pending state** | Profile visibly reads *"Approval pending"* until cleared |
-| **What pending can do** | Browse public posts only. No commenting, no DMs, nothing gender-filtered, no anonymous posting |
-| **Vouches are public** | Shown on the vouched person's profile. Visible cost is what makes a vouch mean something |
-| **Vouches are revocable** | Withdraw at any time; the account reverts to pending |
-| **Accountability** | If someone you vouched for is banned, you lose vouching ability. Vouch chains police themselves |
+Instagram login was also considered and is not available: Meta shut down the Basic Display API on 4 Dec 2024 and the replacement doesn't support personal accounts.
 
-### The detail that matters most
+### Trust tiers, not a binary gate
 
-**A pending man must never be able to solicit vouches inside the app.** If he can message women to ask, you've built a harassment vector into your onboarding — on day one, in the exact place you promised safety.
+| Tier | How you get there | What it unlocks |
+|---|---|---|
+| 0 — New | Signed up | Browse public posts |
+| 1 — Contact verified | Email magic link at launch; phone (SMS, VoIP blocked) once funded | Post and comment publicly |
+| 2 — Verified | Path A **or** Path B | **Women-only content, anonymous posting** |
+| 3 — Established | 7+ days, clean record | Create circles, vouch for others |
 
-Instead: he generates a **vouch link**, shares it *outside* Eve (WhatsApp, iMessage, wherever he actually knows these people), and she taps it. The ask happens in a relationship that already exists. Eve never carries it.
+**Women-only content is gated at Tier 2, not at the front door.** Someone who lies at signup lands at Tier 1 and never reaches anything protected.
 
-### Bootstrap
+### Vouches — identical for everyone
 
-Your original rule — vouchers must have been members a month — means nobody can vouch at launch. Founding cohort is invited directly by you, with vouching rights from day one. The one-month seasoning rule kicks in after week four.
+Same flow, same requirements, regardless of declared gender. A rule that treats men differently would require determining who is a man, which is the adjudication this design removes — and differential treatment by gender is the discrimination exposure.
 
-### Trans women and gay men
+Two kinds of voucher:
 
-Trans women enter as women: one vouch, no adjudication by Eve, ever. Gay men enter through the standard two-vouch path. The company never rules on anyone's identity — the people who know them do. That's the whole point, and it's a good answer when you're asked.
+- **Member vouch** — from an established member (7+ days, clean record) **or** an invitation from Eve's team, which counts the same
+- **Phone vouch** — from anyone with a verified phone. No account needed. Not required by the launch policy, so it waits for SMS to be funded
+
+How many of each Tier 2 needs is configuration, not code, and tightens as the graph grows. Starting thresholds — tune them from the verification completion rate, not from theory:
+
+| Phase | Roughly | Tier 2 needs |
+|---|---|---|
+| Launch | under ~200 members | 1 member vouch |
+| Growth | ~200–2,000 | 1 member vouch + 1 phone vouch |
+| Maturity | 2,000+ | 2 member vouches |
+
+Tightening never demotes anyone already verified. Demotion is only ever explicit: a ban, or a change of declared gender.
+
+**Every voucher:** verify phone by SMS, give name, email and date of birth, and sign an affirmation — *"My vouch is attached to my number. If this account is removed for harming someone, I can never vouch again."* Invisible to the applicant. Explicit "I don't vouch for this person" option. The phone number is burned if the vouched account is later banned.
+
+**The gender check happens here, performed by people who know the applicant.** The vouch form shows the declaration — *"Ali has signed up as a woman. Is that accurate, to your knowledge?"* Eve never decides; it only records what the people who know you said.
+
+**Vouch budget:** 3 per member, +2 per month of clean standing. Caps damage from any single bad actor, creates real scarcity, and makes people spend vouches on those they actually trust.
+
+### The waitlist — for people who know nobody
+
+A waitlist, not an adjudication. They submit their Instagram handle; Eve generates a code that expires in 30 minutes; they put it in their bio; **a reviewer opens instagram.com/[handle] directly and checks.** No media is ever accepted from the applicant — anything they upload can be generated, so nothing they upload is evidence.
+
+The reviewer checks account age and history, follower quality, and presence in *other people's* accounts — the last being the hardest thing to fake, because a manufactured persona is an island.
+
+Your team then **invites** from that list in batches, seeding clusters the graph hasn't reached. Choosing who to invite is a normal thing an invite-only network does; ruling on whether someone's gender claim is true is a different activity with a different legal shape.
+
+### Anti-self-vouching
+
+A member vouch coming from an established member is structurally self-vouch-proof. Beyond that: different phone number (enforced by one-account-per-number), device fingerprint must differ from the signup device, and same-IP-within-ten-minutes flags for human review rather than auto-blocking.
+
+*Honest limit:* nothing short of biometric matching proves two different humans. These make it expensive and awkward; behavioural signals catch the rest within days.
+
+### What's verifiable, and what is only attested
+
+| | Verifiable | Method |
+|---|---|---|
+| Email | Yes | Magic link — the launch identity |
+| Phone | Yes | SMS, VoIP blocked (~$0.05) — once funded |
+| Age | **No** | Self-declared DOB, hard 18+ block. A legal shield, not a fact |
+| Gender | **No** | Self-declared, confirmed by a document marker (Path A) or by vouchers who know them (Path B) |
+
+### Men on Eve
+
+Men can join, browse, post publicly, and be vouched into full membership. They never see a post marked *Women only*, because that filter reads declared gender. **The asymmetry is in the content filter, not the entry gate.**
+
+Gay men are not carved out. Any exception would be self-declared and instantly gamed — a filter with a checkbox bypass. Where a woman wants specific men included, **circles and "+ add specific people" already handle it, per post, by her choice.** That's more true to the product than a platform-level category would be.
+
+*Note for the pitch:* "men are welcome" and "men are a growth segment" are different claims. Only the first is true.
+
+## Business accounts: storefronts, not members
+
+*Added 4 Sep 2026.*
+
+Eve's individual space is women-only. Businesses get in on one condition:
+
+> **Businesses can be seen, but cannot see.**
+
+A storefront on the street of a women's club — women walk in and browse; the shopkeeper doesn't wander the club.
+
+| Capability | Personal (woman) | Business |
+|---|---|---|
+| Post to followers | ✓ | ✓ (badged as business) |
+| Rant / anonymous posting | ✓ | ✗ |
+| View women-only content | ✓ (Tier 2) | ✗ — ever |
+| Browse personal feeds/profiles | ✓ | ✗ — only their own posts, comments on them, aggregate analytics |
+| Contact individuals first | (DMs are v2) | ✗ — never |
+
+The obvious attack — a man registers "a business" — buys him a broadcast channel into the void and his own comment section. He cannot look at anyone. The loophole closes structurally, not by policy.
+
+**Verification is KYB, not KYC:** registration number, domain-verified email, website + existing socials, Stripe billing card. No gender question exists for businesses. Payment is itself a fraud filter — no free business tier.
+
+---
+
+## Monetization
+
+**Women: free.** Marketplace logic — subsidize the side that creates the value, charge the side that extracts it. Launch market is Pakistan; consumer ARPU is low there, and the trust ask at signup is already high. Founding pass and premium controls (extra circles, scheduling, expiring posts) stay as optional revenue, never a gate.
+
+**Businesses pay:**
+- **Subscriptions**, tiered: Starter (~$25–50/mo, profile + posting) → Growth (+ audience-composition analytics — *"your audience is 100% verified women"* is the sales pitch) → Scale (~$150–300/mo, + placement in a labeled Discover tab)
+- **Creator/PR marketplace:** women creators opt into a brand-deals directory; Eve brokers matches and takes 10–15%. Differentiator: every follower is a verified woman, so influencer metrics are bot-free by construction — a known, expensive fraud problem elsewhere
+- **Later:** commerce take-rate on checkout
+
+**The feed promise (revised from "no ads ever"):** *Your feed is never for sale — no injected ads, no data selling. Businesses live in their own labeled spaces, and you choose to follow them.* Personal feeds stay clean permanently; sponsored placement exists only in the labeled Discover tab.
+
+Rough math: 500 businesses at a blended $100/mo = **$600k ARR** — a quarter of Tea's revenue ($2.4M ARR at 1.7M users, ~1% conversion at $14.99/mo) with a fraction of the audience, and it scales *with* the women's side rather than against it.
 
 ---
 
@@ -114,11 +195,12 @@ Trans women enter as women: one vouch, no adjudication by Eve, ever. Gay men ent
 
 ### Build
 
+- **A native app** — iOS first (Expo, shipped through a friend's Apple account), Android from the same codebase once the Play fee is paid. Web only for the waitlist and the voucher page
 - **Invite / vouch onboarding** — links, pending state, public vouches, revocation
 - **The composer** — both dials, on posts and replies
 - **Feed** — chronological, respecting every audience rule
 - **Rant view** — the anonymous filter over the same posts
-- **Profiles and follows** — minimal
+- **Profiles and follows** — minimal. Likes and follower counts are private to the owner by default; she can make them public after 30 days (7.4). No scoreboards on day one
 - **Circles** — named custom audience lists
 - **Likes and replies** — one level of threading
 - **Report, block, and a human moderation queue you actually read**
@@ -128,7 +210,7 @@ Trans women enter as women: one vouch, no adjudication by Eve, ever. Gay men ent
 - **Video.** Text and images only for v1. Video means transcoding, CDN, storage cost, and a week you don't have. Your product is "post the thing you wouldn't post" — that's mostly words and pictures. Video is v2.
 - **AI comment moderation.** Report and block are non-negotiable; the automated filter is not. Human queue at 200 users.
 - **DMs.** Your own 5.3 flagged these as reflex-copied from Instagram. They're also your largest safety liability.
-- **Pinterest boards, AI video generation, monetization, custom algorithm.** All correctly cut in Round 05. Keep them cut.
+- **Pinterest boards, AI video generation, creator payouts, custom algorithm.** All correctly cut in Round 05. Keep them cut. Business revenue is a different thing: it's pre-sold before 12 Oct and built after (see Monetization). Nothing of it ships in v1 beyond the schema stub.
 
 ### The engineering shape
 
@@ -171,9 +253,9 @@ But for the **pitch**, name one wedge. "We're winning a market I understand nati
 
 Honest list. Don't paper over these in an application; have answers.
 
-1. **No revenue.** SPEEDRUN's recent cohorts put ARR in their one-liners. You won't. Your substitute is a retention curve, and you have to make that argument explicitly rather than hoping nobody notices.
+1. **No revenue yet.** SPEEDRUN's recent cohorts put ARR in their one-liners. The plan: retention curve as the traction number, plus **signed business LOIs before 12 Oct** ("N businesses at $X/mo, launching November") as the ARR sentence. Pre-sell, don't pre-build.
 2. **Cold start.** Invite-only helps enormously, but it caps growth by design. You'll need to show the graph compounding, not just existing.
-3. **Vouching is softer than ID.** A determined bad actor with two friends willing to vouch gets in. Your answer: the vouch is public, revocable, and costs the voucher their own standing. It's a social deterrent, not a technical guarantee — say so plainly rather than overclaiming.
+3. **Vouching is softer than ID.** A determined bad actor with friends willing to vouch gets in. Your answer: the vouch is public, revocable, and costs the voucher their own standing. It's a social deterrent, not a technical guarantee — say so plainly rather than overclaiming.
 4. **The rant section is a moderation liability.** Anonymous posting plus a community that came for safety is a combination that goes wrong fast without a real human in the queue. Budget for that in hours, not just dollars.
 
 ---
