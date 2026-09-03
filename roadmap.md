@@ -92,7 +92,7 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Rehearse three answers:** verification economics (vouching costs nothing; the instant door costs about $1.50 and Eve never holds the document — say both halves); your inclusion policy in one calm sentence; and why Meta won't copy this (Close Friends exists and stays crude because fragmenting reach fights their business model).
 
-**Submit 12 October.**
+**Submit SPEEDRUN on 12 October, then start the YC Winter 2027 application the same day** — same answers, same demo, deadline 2 Nov 8pm PT, three more weeks of retention data. Founders Inc Canopy is the safety net that runs online; apply the day the next cohort opens. Decision D29 in the log.
 
 ---
 

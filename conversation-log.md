@@ -181,6 +181,9 @@ A native app for both platforms, iOS first, zero cost. Expo keeps iOS, Android a
 
 *What it forbids* (architecture §1.1): Sign in with Apple, iCloud / Game Center / Wallet / IAP entitlements, a throwaway bundle ID. Entitlements are push and associated domains only.
 
+### D29 — Apply to YC, SPEEDRUN and Founders Inc, in that order of priority *(4 Sep)*
+Not exclusive at application stage, same demo for all three. **YC** is the primary bet: dozens of Pakistani portfolio companies (partners know the market and the visa path), $500K committed on acceptance, indifferent to student status or degrees, the strongest brand for a solo founder raising a seed, and a 2 Nov deadline that lands three weeks after SPEEDRUN with more data. **SPEEDRUN** stays co-primary as the best thesis fit (consumer, Andrew Chen) with more upfront cash at a higher valuation; the risk is a cohort skewed to AI and revenue. **Founders Inc** Canopy is the safety net: five weeks, online option, ~15% admission, small money at demo day — the only one that works if the Bangkok B-1 fails. Neither in-person program pays a stipend; both fund the move through the investment, with a ~$4–5k bridge before the wire lands (todo §7). Social media is a founder-run track from week 1 (todo §6), with the rule that marketing never spends the product's privacy promise.
+
 ---
 
 ## 3. Research findings

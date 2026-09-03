@@ -6,6 +6,17 @@
 
 ---
 
+## 0. Dates that don't move
+
+| Date | What | Notes |
+|---|---|---|
+| **12 Oct** | a16z SPEEDRUN SR008 priority window opens | Submit on the 12th. Window closes 1 Nov. Program late Jan–Apr 2027, SF, in person |
+| **2 Nov, 8pm PT** | YC Winter 2027 deadline | About 11am Bangkok on 3 Nov — verify. Same demo, three more weeks of data. Decision by 11 Dec; batch Jan–Mar 2027, SF, in person |
+| Now | Founders Inc Canopy — sign up for the next-cohort notification at f.inc/canopy | Last cohort applied early April, ran from mid-April, five weeks, on campus **or online**. The one that works without a visa |
+| This week | B-1/B-2 appointment wait check at the Bangkok embassy | Both in-person programs start in January. The visa is the gate, not the acceptance |
+
+---
+
 ## 1. The zero-dollar configuration
 
 What launches, and what it replaces:
@@ -47,6 +58,12 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 - [ ] Check the Bangkok B-1/B-2 appointment wait. The fee is the first money you'll spend, so know the date you'd need it by
 - [ ] **Friend's Apple account:** they add your Apple ID to App Store Connect as App Manager, create the app record with your bundle ID, enable TestFlight. Get a one-line written agreement that the app transfers to you on request
 - [ ] Confirm the seed cohort is on iPhone. Anyone on Android goes on the waitlist for ladder #3, not silently lost
+- [ ] Sign up for the Founders Inc Canopy notification
+
+**Social (see §6)**
+- [ ] Create the accounts: TikTok, Instagram, X — one set for Eve, one for you as the founder. Same handle everywhere if you can get it. Waitlist link in every bio
+- [ ] First post on the founder account: *"I'm building the app where women only means women only. $0, day 1."* No polish
+- [ ] Ask the seven if their answer to "how many Instagram accounts do you have?" can be quoted, first name or anonymous
 
 ### Week 2 · Sep 8–14
 
@@ -60,6 +77,10 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 **You**
 - [ ] Two names from each of the seven, in *different* circles
 - [ ] Decide the verb (3.2). One hour, then stop
+
+**Social**
+- [ ] Three short videos this week. Hook 1: *"how many Instagram accounts do you have?"* Hook 2: the finsta problem in your words. Hook 3: build-in-public, the composer on the Simulator
+- [ ] Post one of the seven's quotes as a text card
 
 ### Week 3 · Sep 15–21
 
@@ -77,6 +98,10 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 - [ ] 30–50 women committed to *post* in week 4, not just sign up
 - [ ] Write template terms and privacy policy. Say plainly: anonymous to members not to Eve, screenshots can't be prevented, widening is retroactive
 
+**Social**
+- [ ] Three videos. One is the audience dial being chosen *before* typing — that's the thesis in four seconds
+- [ ] Reply to every comment on the earlier posts. The replies are where the waitlist comes from
+
 ### Week 4 · Sep 22–28
 
 **Build**
@@ -93,11 +118,19 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 **You**
 - [ ] Seed the Founders' Board. 20 members posting before anyone else is admitted
 
+**Social**
+- [ ] Three videos. One teases the rant section without showing any real post — a blank composer with *Anonymous* selected is enough
+- [ ] A "we're opening to the first 50 next week" post with the waitlist link. Scarcity is true here, so say it
+
 ### Week 5 · Sep 29 – Oct 5
 
 - [ ] Private launch through the TestFlight public link. Cohort invites outward with their vouch budgets
 - [ ] Submit to the App Store early in the week. Expect one rejection round on anonymous user content; answer with the moderation queue and the contact address. A released version is what makes App Transfer possible later
 - [ ] Watch the install step in the vouch funnel: link tapped → app installed → account created. If the drop is large, that's the PWA argument coming back as data
+
+**Social**
+- [ ] Record the three-second shot — a post visible from her phone, invisible from a man's — and post it everywhere. This is the whole product and the best hook you'll ever have
+- [ ] Waitlist number as a weekly post: *"312 women waiting."* Real numbers only
 - [ ] Watch daily: verification completion, posts per active member per week, W1 retention
 - [ ] Fix what the numbers say
 - [ ] Business track, free version: a one-page "Reach verified women" waitlist, then pitch 5–10 Pakistani boutique / beauty / fashion brands. Target signed LOIs at a named price. Conversations cost nothing
@@ -109,7 +142,17 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 - [ ] Write the application
 - [ ] Record the demo from the TestFlight or App Store build on a real iPhone: sign up, get vouched, pick *Women only*, post, show it invisible from a man's account
 - [ ] Rehearse: verification economics, inclusion policy in one sentence, why Meta won't copy it
-- [ ] Submit 12 October
+- [ ] Submit SPEEDRUN on 12 October
+- [ ] Start the YC application the same day. Same answers, same demo. Submit by 2 Nov, 8pm PT, with three more weeks of retention data in it
+
+**Social**
+- [ ] Keep the cadence. Investors reading an application look at the founder account, and a dead account reads like a dead product
+
+### Weeks 7–8 · Oct 13 – Nov 2
+
+- [ ] Nothing new in the build. Retention data accrues; fix what week 5 exposed
+- [ ] YC application submitted before **2 Nov, 8pm PT**
+- [ ] Founders Inc: apply the day the next Canopy cohort opens, online track if the visa isn't in hand
 
 ---
 
@@ -155,3 +198,56 @@ When money arrives, buy in this order. Each row says what it unlocks and the tri
 - **iOS first in an Android country.** Until the $25 Play fee is paid, every Android woman in the cohort is on a waitlist. Count them; they're the argument for ladder #3.
 - **The app is your friend's until it's transferred.** A transfer needs a released App Store version and a friend who still says yes. The written one-liner and the early submission are the whole mitigation.
 - **The install step is back in the vouch funnel.** The 1 Sep plan avoided it with a PWA. Universal links soften it; measure link-tapped → installed → signed-up from the first day.
+
+---
+
+## 6. Social media — yours, every week, free
+
+**Accounts.** Eve on TikTok, Instagram and X. You on the same three as the founder. The founder account does the work: people follow a person building something, not a logo with no users.
+
+**Cadence.** Three short videos a week, no exceptions, no polish. One of each:
+
+1. **A problem hook.** *"How many Instagram accounts do you have?"* · *"Your finsta is proof the product is wrong."* · *"Women only should mean women only."* · *"Why do men see posts that were never for them?"*
+2. **Build in public.** *"Day 12, $0 spent, here's the composer."* The Simulator on screen, your voice over it. Setbacks included — a rejection from App Review is a better post than a feature.
+3. **Their words.** A quote from the seven, then from members, as a text card. Ask first, every time.
+
+**Hooks that come from the product itself:**
+- The audience dial chosen *before* typing
+- The three-second shot: visible on her phone, invisible on his
+- *"Anonymous to other members, not to us"* said out loud — honesty is a hook
+- The waitlist count, weekly, real
+- *"No ads in your feed, ever. Businesses live in their own room."*
+
+**Rules that come from the product too:**
+- Never a screenshot of a real member's post, name or handle. Not even blurred. The app's promise is privacy; the marketing can't spend it
+- Never show who vouched for whom
+- No fake numbers, no fake testimonials. The seven are real; use them
+- Reply to every comment for the first month. The replies are where the waitlist comes from
+
+**Measure one thing:** waitlist signups per post. PostHog can attribute the link in each bio with a `?src=` tag. Do more of whatever the number says.
+
+---
+
+## 7. If you get in: money for the move
+
+None of the three pays a stipend or housing. Two of them fund the move through the investment itself; the third doesn't need a move.
+
+| | Funds the move? | How | The gap |
+|---|---|---|---|
+| **YC** | Yes | $500K is committed on acceptance. The first $125K is wired once the Delaware company exists and the SAFE is signed. Rent and living for three months come out of it | Decision 11 Dec, batch in January. Company formation and the wire can take weeks, so the flight, the first month and the deposit may need to be found before the money lands. YC has done this for hundreds of international founders — ask on the acceptance call how fast they can wire |
+| **SPEEDRUN** | Yes | $500K SAFE at the start of the program, same mechanics. a16z actively helps international founders incorporate and with visas | Same gap. Ask the same question |
+| **Founders Inc** | No, and no move needed | Canopy runs online. Money, if any, comes at demo day at the end | If you do go to Fort Mason in person, that's on you. Online is the point |
+
+**The bridge, roughly:**
+
+| Item | Rough cost |
+|---|---|
+| B-1/B-2 visa fee | $185, possibly plus a separate integrity fee |
+| Flight Bangkok → SF | ~$600–900 one way |
+| First month in SF (a room, not a flat) | ~$1,500–2,500 |
+| Deposit, food, phone, transit for the first weeks | ~$1,500 |
+| **Before the wire lands** | **~$4–5k** |
+
+That number, not the $500K, is the one to solve. The 42 network, family, the seven, or a small founder-friendly loan cover it. Both YC and a16z have seen founders in exactly this position and will tell you what has worked. Ask before you fly, not after.
+
+**One question for their immigration lawyer, not for me:** a B-1 visitor cannot take a US salary. How a founder on a B-1 covers living costs from the company's money is something YC and a16z answer routinely. Ask it on the acceptance call.
