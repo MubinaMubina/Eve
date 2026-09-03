@@ -141,6 +141,20 @@ Proposed: *Women only* would still include men she follows back, with a note und
 - **First-ever default is Women only.** The default's failure mode must be disappointment, not exposure
 - **Screenshots cannot be prevented.** Say so in the copy rather than implying a guarantee that can't be kept
 
+### D18 — Dual-path verification *(revises D3/D4: "no ID anywhere" → "no ID stored by Eve")*
+Tea's numbers broke the friction objection: 1.7M women uploaded IDs to a safety app that hit #1 in the US. What survived Tea is the *storage* rule, hardened by its breach (72k IDs/selfies in a public bucket, five consolidated federal class actions): **vendor-hosted capture, attributes by webhook, no image ever touches Eve.**
+
+So: **Path A** — vendor ID/liveness (~$1–2, instant, solves the bootstrap problem that vouch-only had). **Path B** — vouching (free, always available; the route for trans women, ID-refusers, and anyone Path A misreads — and the legal defence: Eve never excludes on a document, never adjudicates gender). Face gender estimation, if used at all, is a fast-track *signal, never a decision* — silent fallback to Path B, no algorithmic rejection ever.
+
+### D19 — Vouch strictness ramps with graph size *(fixes the bootstrap collapse)*
+Requiring two member-vouches at 50 members means newcomers need to sit in the *intersection* of two members' networks — the graph grows dense, not wide. Fix: phase the requirement (launch: 1 member vouch or team invite, big budgets; growth: 1 member + 1 phone-verified anyone; maturity: 2 member vouches). Config, not code paths. Plus **cascading revocation**: a banned account burns its vouchers' rights; corrupt subtrees get cut whole; fraud-ring detection (tight reciprocal clusters, narrow signup windows, shared fingerprints) is a weekly SQL report from day one.
+
+### D20 — Business accounts: storefronts, not members *(your idea, 4 Sep)*
+Two-sided network: women are the community (free), businesses pay for access. The rule that closes the "any man registers a business" loophole structurally: **businesses can be seen but cannot see** — broadcast-only, no browsing personal content, no women-only access ever, no initiating contact, own-posts-and-analytics only. KYB verification (registration, domain email, Stripe card — payment is itself a fraud filter), no gender question exists for them. Schema stub (`account_type`) ships in week 1; features ship after 12 Oct.
+
+### D21 — Monetization *(closes the "no revenue" gap)*
+Women free (marketplace logic + Pakistan PPP). Business subscriptions in tiers — the Growth tier sells the audience-composition dashboard, which is the original "97% women" idea returning as the B2B product. Creator/PR marketplace at 10–15% take — bot-free influencer metrics by construction. "No ads ever" revised to a keepable promise: *personal feeds are never for sale; businesses live in labeled spaces you choose to follow.* Benchmark from Tea: $2.4M ARR at 1.7M users (~1% conversion, $14.99/mo) — subscriptions alone are a floor, not a venture story; the venture story is commerce + the trust graph. Pre-October play: **signed business LOIs, not built features.**
+
 ---
 
 ## 3. Research findings
@@ -185,6 +199,13 @@ Proposed: *Women only* would still include men she follows back, with a note und
 - **BIPA (Illinois)** — private right of action, statutory damages per violation. The reason biometrics are the expensive mistake.
 - **GDPR Article 9** — biometrics used for identification are special-category data.
 - ***Tickle v Giggle*** (Australia, 2024) — excluding a trans woman from a women-only app was found to be unlawful discrimination. Mitigated here by Eve never adjudicating gender, a documented appeal path, and your inclusive 0.4 policy.
+
+### Tea (teaforwomen.com) — the category's proof and cautionary tale
+- Founded Nov 2022 by Sean Cook (ex-Salesforce), self-funded, after his mother was catfished. Women-only; required selfie + government ID
+- **Proof of demand:** #1 free app in the US (July 2025), 1M signups in one week, 1.7M+ users, 4.8★
+- **Revenue:** ~$200k/mo (~$2.4M ARR) at $14.99/mo — ~13k subscribers, under 1% conversion. Monetized a *decision* (meeting a stranger tonight), not a habit — Eve cannot copy that price point
+- **The breach (July 2025):** verification images in an unsecured public Firebase bucket for over a year — 13k selfies+IDs, 59k user images, then a second find: 1.1M private messages. FBI involved; five federal class actions consolidated (N.D. Cal.)
+- **Lessons wired into Eve:** never store verification media (D18); DMs stayed cut (their 1.1M messages were the second breach); retention policy from day one (Tea's exposed users were pre-Feb-2024 legacy data); the pitch line *"we can't leak your ID — we never hold it"*
 
 ---
 

@@ -43,8 +43,16 @@ create table users (
   handle            citext unique not null,
   display_name      text,
 
-  declared_gender   text not null check (declared_gender in ('woman','man','nonbinary')),
+  account_type      text not null default 'personal'
+                    check (account_type in ('personal','business')),
+  -- business accounts: declared_gender is irrelevant and never collected;
+  -- they verify via KYB (Stripe/Persona), never KYC, and never reach tier 2
+  declared_gender   text check (declared_gender in ('woman','man','nonbinary')),
   gender_set_at     timestamptz not null default now(),
+
+  constraint personal_has_gender check (
+    account_type = 'business' or declared_gender is not null
+  ),
 
   dob               date not null,           -- 18+ enforced at write and by constraint
   tier              smallint not null default 1 check (tier between 0 and 3),
@@ -155,6 +163,7 @@ returns boolean language sql stable as $$
            -- Tier 2 gate lives here, and only here
            when 'women'     then exists (select 1 from users u
                                          where u.id = viewer
+                                           and u.account_type = 'personal'
                                            and u.declared_gender = 'woman'
                                            and u.tier >= 2
                                            and u.status = 'active')
@@ -192,6 +201,17 @@ Circle membership, follows, and tier all change. Evaluating at read time means *
 Read-time evaluation costs performance. That trade is correct here, and §5 covers how to keep it fast.
 
 ---
+
+### Business accounts (schema stub now, features post-launch)
+
+`account_type = 'business'` exists in the schema from day one so no migration is ever needed; the features ship after 12 Oct. The rules, enforced in the same places everything else is:
+
+- The `women` branch above requires `account_type = 'personal'` — a business account can never satisfy it, regardless of any other field
+- The rant/anonymous feed view adds `where u.account_type = 'personal'` — businesses cannot post anonymously or read the rant feed
+- Business browse surface is *their own* posts, comments on them, and aggregate analytics — enforced by RLS on the feed views, not by hiding UI
+- Businesses are broadcast-only: no initiating contact with individuals, ever (DMs are v2 regardless, but write the policy row now)
+
+**Businesses can be seen but cannot see.** If that sentence stops being true in any code path, it's a security bug, same severity as an RLS bypass.
 
 ## 4. Anonymity
 

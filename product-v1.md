@@ -1,6 +1,6 @@
 # Eve — Product Definition v1
 
-*Written 31 Aug 2026, from the answers in [questions-before-code.md](questions-before-code.md). This is the version I'd take into an application — react to it, don't accept it.*
+*Started 31 Aug 2026, last updated 4 Sep 2026. **Living document** — decisions here are settled-for-now, not final. When a new idea lands, we argue it out in conversation, then this file gets the verdict. [conversation-log.md](conversation-log.md) keeps the why.*
 
 ---
 
@@ -61,13 +61,25 @@ Two details that make it work:
 
 ---
 
-## Verification: the vouch model
+## Verification: two doors, one tier
 
-*Settled 1 Sep 2026. Full mechanics in [architecture.md](architecture.md).*
+*Revised 4 Sep 2026 (supersedes the vouch-only model of 1 Sep). Full mechanics in [architecture.md](architecture.md).*
 
-### No biometrics, no ID documents, anywhere
+### The prime directive: Eve never stores an image
 
-Not a cost decision — a structural one. ID checks **cannot implement the policy in your 0.4 answer** (women, trans women, gay men). No government ID identifies someone as a gay man; many trans women cannot update their documents. Vouching can. It also keeps you out of BIPA and GDPR Article 9 entirely, and it means Eve never adjudicates anyone's gender.
+Tea's breach (72,000 verification selfies and government IDs in a public bucket, five consolidated federal class actions) fixed the one non-negotiable rule: **whatever the method, no document, selfie, or face template ever touches Eve's infrastructure.** Vendor-hosted capture, attributes back by webhook, four fields in our database. We cannot leak what we never possessed.
+
+### Path A — vendor verification (instant, paid)
+
+Vendor-hosted ID + liveness check (Persona / Veriff / Stripe Identity, ~$1–2). Works at user number one, which solves the bootstrap problem vouching alone cannot. Tea proved the friction is survivable: 1.7M women uploaded IDs to a safety app.
+
+An optional selfie liveness + dedup check can **fast-track** high-confidence cases — but gender estimation is a *signal, never a decision*: ambiguous or misread users silently fall back to Path B. Nobody is ever rejected by an algorithm, and nobody is told they were misread. (The classifiers are weakest on exactly our users — darker-skinned women, older women, hijabis.)
+
+### Path B — vouching (free, human, always available)
+
+Two vouches from people who know you. This is the route for trans women whose documents don't match, for anyone unwilling to upload an ID, and for anyone Path A misreads. **Its existence is the legal defence**: Eve never excludes anyone on a document, and Eve never adjudicates gender — the people who know you do.
+
+Voucher strictness ramps with graph size (1 member vouch at launch → 2 at maturity); founding cohort is hand-verified by the founder with large vouch budgets. Cascading revocation: a banned account burns its vouchers' vouching rights, and corrupt subtrees get cut whole.
 
 Instagram login was also considered and is not available: Meta shut down the Basic Display API on 4 Dec 2024 and the replacement doesn't support personal accounts.
 
@@ -125,6 +137,45 @@ Men can join, browse, post publicly, and be vouched into full membership. They n
 Gay men are not carved out. Any exception would be self-declared and instantly gamed — a filter with a checkbox bypass. Where a woman wants specific men included, **circles and "+ add specific people" already handle it, per post, by her choice.** That's more true to the product than a platform-level category would be.
 
 *Note for the pitch:* "men are welcome" and "men are a growth segment" are different claims. Only the first is true.
+
+## Business accounts: storefronts, not members
+
+*Added 4 Sep 2026.*
+
+Eve's individual space is women-only. Businesses get in on one condition:
+
+> **Businesses can be seen, but cannot see.**
+
+A storefront on the street of a women's club — women walk in and browse; the shopkeeper doesn't wander the club.
+
+| Capability | Personal (woman) | Business |
+|---|---|---|
+| Post to followers | ✓ | ✓ (badged as business) |
+| Rant / anonymous posting | ✓ | ✗ |
+| View women-only content | ✓ (Tier 2) | ✗ — ever |
+| Browse personal feeds/profiles | ✓ | ✗ — only their own posts, comments on them, aggregate analytics |
+| Contact individuals first | (DMs are v2) | ✗ — never |
+
+The obvious attack — a man registers "a business" — buys him a broadcast channel into the void and his own comment section. He cannot look at anyone. The loophole closes structurally, not by policy.
+
+**Verification is KYB, not KYC:** registration number, domain-verified email, website + existing socials, Stripe billing card. No gender question exists for businesses. Payment is itself a fraud filter — no free business tier.
+
+---
+
+## Monetization
+
+**Women: free.** Marketplace logic — subsidize the side that creates the value, charge the side that extracts it. Launch market is Pakistan; consumer ARPU is low there, and the trust ask at signup is already high. Founding pass and premium controls (extra circles, scheduling, expiring posts) stay as optional revenue, never a gate.
+
+**Businesses pay:**
+- **Subscriptions**, tiered: Starter (~$25–50/mo, profile + posting) → Growth (+ audience-composition analytics — *"your audience is 100% verified women"* is the sales pitch) → Scale (~$150–300/mo, + placement in a labeled Discover tab)
+- **Creator/PR marketplace:** women creators opt into a brand-deals directory; Eve brokers matches and takes 10–15%. Differentiator: every follower is a verified woman, so influencer metrics are bot-free by construction — a known, expensive fraud problem elsewhere
+- **Later:** commerce take-rate on checkout
+
+**The feed promise (revised from "no ads ever"):** *Your feed is never for sale — no injected ads, no data selling. Businesses live in their own labeled spaces, and you choose to follow them.* Personal feeds stay clean permanently; sponsored placement exists only in the labeled Discover tab.
+
+Rough math: 500 businesses at a blended $100/mo = **$600k ARR** — a quarter of Tea's revenue ($2.4M ARR at 1.7M users, ~1% conversion at $14.99/mo) with a fraction of the audience, and it scales *with* the women's side rather than against it.
+
+---
 
 ## v1 scope
 
@@ -187,7 +238,7 @@ But for the **pitch**, name one wedge. "We're winning a market I understand nati
 
 Honest list. Don't paper over these in an application; have answers.
 
-1. **No revenue.** SPEEDRUN's recent cohorts put ARR in their one-liners. You won't. Your substitute is a retention curve, and you have to make that argument explicitly rather than hoping nobody notices.
+1. **No revenue yet.** SPEEDRUN's recent cohorts put ARR in their one-liners. The plan: retention curve as the traction number, plus **signed business LOIs before 12 Oct** ("N businesses at $X/mo, launching November") as the ARR sentence. Pre-sell, don't pre-build.
 2. **Cold start.** Invite-only helps enormously, but it caps growth by design. You'll need to show the graph compounding, not just existing.
 3. **Vouching is softer than ID.** A determined bad actor with two friends willing to vouch gets in. Your answer: the vouch is public, revocable, and costs the voucher their own standing. It's a social deterrent, not a technical guarantee — say so plainly rather than overclaiming.
 4. **The rant section is a moderation liability.** Anonymous posting plus a community that came for safety is a combination that goes wrong fast without a real human in the queue. Budget for that in hours, not just dollars.

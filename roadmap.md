@@ -30,7 +30,7 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Waitlist page ships this week.** One afternoon. Headline, one-liner, email field. Every conversation ends with a signup.
 
-**Build:** auth (phone OTP, email, DOB gate), the schema, RLS policies, and the RLS test suite.
+**Build:** auth (phone OTP, email, DOB gate), the schema — including the `account_type` business stub, so it never needs a migration — RLS policies, and the RLS test suite.
 
 ---
 
@@ -70,6 +70,8 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Fix what the numbers say, not what you assumed.** This week exists to be surprised.
 
+**Business track starts now (sell, don't build):** a one-page business waitlist (*"Reach verified women"*), then pitch 5–10 Pakistani boutique/beauty/fashion brands directly. Target: **signed LOIs at a named monthly price** before 12 Oct — a founding-partner deposit is even better. Business *features* ship after the application; the schema stub already exists.
+
 ---
 
 ## Week 6 · Oct 6–12
@@ -79,6 +81,8 @@ Three things run in parallel and only one of them is code. The build is the one 
 **Write the application.** The one-liner, the founder story, the metrics.
 
 **Record the demo** — 60–90 seconds, real app, real phone, one take. Sign up, get vouched, open the composer, pick *Women only*, post, then show the same post invisible from a man's account. **That last shot is the entire product in three seconds.** No slides, no music.
+
+**The ARR sentence:** *"N businesses signed at $X/month, launching to them in November — women's side is free by design."* This is what the LOI track buys you.
 
 **Rehearse three answers:** verification economics (yours is near-zero marginal cost — that's a genuinely good answer, use it); your inclusion policy in one calm sentence; and why Meta won't copy this (Close Friends exists and stays crude because fragmenting reach fights their business model).
 
