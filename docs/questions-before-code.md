@@ -2,6 +2,8 @@
 
 **A thinking pass, before the building pass.**
 
+**Historical questionnaire:** These answers are preserved as originally written, not the current build specification. Later decisions supersede mixed membership, gender audience filters, an unverified public lobby, automated verification, mandatory social-profile checks and promises of perfect verification. Use [product-v1.md](product-v1.md) for current behaviour and [release-readiness.md](release-readiness.md) for release gates/lifecycles. No new answers are required here before building.
+
 39 questions for rethinking the whole thing. Most have a wrong answer — that's the point. Vague questions produce vague products.
 
 ---
@@ -331,6 +333,8 @@ Instead of hard-gating entry to the entire platform (which creates onboarding fr
 6.2 Who counts, and who decides? Write the sentence you'd publish.
 Answer:
 "Eve uses community vouching from verified members alongside quick automated verification to confirm your profile identity, ensuring that content set to female-only is seen exclusively by women."
+
+*Superseded by D59 (5 Sep, see [conversation-log.md](conversation-log.md)): no automated/AI verification ships in MVP, and there's no separate "female-only" filter — the whole admitted community is women-only by admission (D30). Don't lift this sentence for a landing page or pitch deck as written.*
 
 6.3 What happens when the system is wrong about someone?
 Answer:

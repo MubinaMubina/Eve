@@ -2,22 +2,26 @@
 
 *Started 4 Sep 2026. Zero-budget mode: nothing is bought until there's money, and when money arrives it's spent in the order in §3. Platform: native iOS first through a friend's Apple account, Android from the same codebase when the Play fee is paid (D28).*
 
+**Release gates and lifecycle policy:** [release-readiness.md](release-readiness.md). No real-member launch until its checklist passes.
+
 **Companion docs:** [roadmap.md](roadmap.md) (the narrative) · [architecture.md](architecture.md) · [product-v1.md](product-v1.md) · [conversation-log.md](conversation-log.md)
 
 **After MVP:** [to-do-after-MVP.md](to-do-after-MVP.md) tracks deferred features, starting with saved posts / bookmarks (D49). These are outside the current build checklist.
 
-**Pre-build decision pass complete (D61):** D59-D61 settle the final admission, account-deletion and notification decisions. Next: reconcile the historical architecture/schema with the approved product rules before implementation. Remaining explicit technical/policy details stay tracked; do not treat the old SQL as ready to execute.
+**Pre-build decision pass complete (D61), reconciled 6 Sep:** The architecture now defines the current database/API contracts instead of unsafe historical SQL. D62 lifecycle defaults are approved. Next: write migrations, implement and test. Checked product decisions do not mean those features are built.
 
 **5 Sep scope override (D30):** Women-only membership for launch. Everyone on Eve means the admitted community, including when the author has a private account. The former Women only vs Everyone distinction and male-member demo are superseded.
 
-- [ ] Reconcile the architecture draft with D30 before implementing its SQL: admission required on every member-content path; no separate gender audience or unverified public lobby
+## MVP Implementation Checklist
+
+**Build started:** a synthetic Expo preview and the first applicant/review migration now exist. See [development.md](development.md) for implemented scope, tests and remaining integration work, and [your-setup.md](your-setup.md) for owner tasks. Partial preview behaviour does not complete the production checkboxes below.
+
+*All approved MVP commitments below are required before the first real-member cohort. A local synthetic-data demo can be partial; the target date cannot silently defer privacy, deletion, vouch safeguards or capture alerts. Release sequencing is governed by [release-readiness.md](release-readiness.md).*
+
+### Foundation and Audience Rules
+- [x] Reconcile the architecture contract: mandatory admission/status/block checks before every audience; private authorship storage, narrow database API and stable two-field cursors
+- [ ] Implement versioned migrations, private-schema grants/default privileges, internal authorization helpers and reviewed API functions; test direct-table, RPC, GraphQL, Realtime and media access as each relevant role
 - [x] Define private-account follow approval (D31): owner approves or declines; pending and declined requests grant no follower access
-- [x] Define follower removal (D53): quiet removal also clears all of that owner's close-friends/circle memberships on public and private accounts; refollow never restores circles
-- [ ] Implement atomic owner-authorized follower/circle removal; verify private reapproval, public refollow, historical access revocation, unchanged other owners' circles and no removal notification/block/strike
-- [x] Define private-profile preview (D51): basic profile details, request button and app-wide named posts; restricted posts still require audience eligibility and anonymous posts stay excluded
-- [x] Define MVP people search (D52): username/display-name search with basic profile results, admission/block checks and no anonymous identity lookup
-- [ ] Implement people search and profile navigation; verify matches, duplicate display names, private accounts, both block directions, admission and absence of private account data or anonymous mappings
-- [ ] Implement private-profile preview/request states and authorized named-post lists; verify profile visibility never bypasses admission, blocks, follower/mutual/circle rules or count privacy
 - [ ] Implement private-account follow requests and owner-only approval/decline; check pending/declined requests against followers-only and mutuals audiences
 - [x] Define new-post defaults (D32): private account = Followers; public account = Everyone on Eve; no separate preferred default or last-used audience
 - [x] Define initial account privacy (D50): member chooses Private/Public during signup and can change it later in settings
@@ -26,12 +30,23 @@
 - [x] Define account privacy transitions (D33/D41): named non-circle posts become app-wide on private to public; named app-wide posts become Followers on public to private; anonymous posts always remain app-wide
 - [x] Define pending requests on privacy switches (D54): going public accepts eligible pending requests without circle membership; returning to private retains followers; explain acceptance in confirmation
 - [ ] Implement atomic pending-request acceptance with the private-to-public switch; verify admission/blocks, cancellations, retries, unchanged circle membership and retained follows when returning to private
-- [ ] Implement atomic account privacy / existing-post audience changes, preserve anonymity and circle restrictions, and check extra viewers and cached/media access
+- [ ] Implement atomic account privacy / existing-post audience changes, preserve anonymity and circle restrictions, and recheck current audiences and cached/media access
+- [ ] Decide how account privacy changes affect drafts
 - [x] Define circle history (D34): new close-friends members can see all existing posts in that circle
 - [x] Define circle creation eligibility (D36): immediately at Tier 2; retain the seven-day wait and clean-record requirement for member vouching
 - [ ] Implement circle creation/management for active Tier 2 owners; verify pending applicants are denied, newly admitted members can create circles, and vouching remains gated separately
 - [ ] Implement and verify circle addition/removal against historical and new posts, including admission checks and isolation between circles
 - [x] Define comment visibility and identity (D35): inherit current post audience; anonymous comments allowed only on anonymous posts
+- [x] Define blocking (D40): underlying account, both directions, named and anonymous activity across Eve, without directly revealing anonymous identity
+- [x] Define feed organization (D48): Following = eligible named posts from followed accounts; Community = app-wide named; Anonymous = app-wide anonymous; all chronological
+- [ ] Implement three feed queries/navigation with independent pagination and shared authorization; verify no anonymous posts in Following/Community and no restricted named posts in Community
+- [ ] Implement private account block records, anonymous-target resolution and identity-preserving block management; enforce before all audience grants and on comments independently of parent authors
+- [ ] Verify block behaviour across feeds, direct reads/media, third-party threads, interactions, queued notifications and independent unblock actions; ensure blocks alone never issue voucher strikes
+- [ ] Demo app-wide posting from a private account, then restricted posting checked against a member outside the audience; verify pending applicants cannot read either
+
+### Profiles, Comments and Anonymity
+- [x] Define private-profile preview (D51): basic profile details, request button and app-wide named posts; restricted posts still require audience eligibility and anonymous posts stay excluded
+- [ ] Implement private-profile preview/request states and authorized named-post lists; verify profile visibility never bypasses admission, blocks, follower/mutual/circle rules or count privacy
 - [x] Define anonymous likes/comment choice (D55): likes show counts without identities; ask Post as anonymous / I don't care for each new comment on an anonymous post; I don't care means normal profile identity
 - [ ] Implement private anonymous-post liker records with count/own-like projections and explicit per-comment identity choice; verify no author/reader liker enumeration or named like notifications, and no silently reused named choice
 - [x] Define comment controls (D43): author can disable before publishing, close later and reopen; existing comments remain visible for both post types
@@ -46,35 +61,42 @@
 - [x] Define anonymous/profile separation (D42): no anonymous posts or counts on profiles; private My anonymous posts view for the owner
 - [ ] Implement owner-only anonymous-post management and profile/count/search exclusions; verify followers, close friends and direct API queries cannot link an anonymous post to a real profile
 - [ ] Implement anonymous audience invariant, immutable published post identity, fixed-audience composer mode and named-only account privacy transitions; verify direct API bypass attempts and both account privacy settings
+
+### Deletion and Media Privacy
+- [x] Define image and video posts as MVP scope (D64); same post audiences and named/anonymous rules, with optional captions
+- [ ] Implement protected photo/video uploads and playback, server-side file validation/limits, processing states, private thumbnails/transcodes and metadata stripping
+- [ ] Verify media access for every audience and anonymous posts, including video range/segment requests, privacy changes, blocks, removal and deletion; no external download/share controls
+- [ ] Confirm production attachment-count, format, file-size and video-duration limits; local preview limits are provisional
 - [x] Define comment editing (D56): own text editable with Edited label; published identity fixed; post owners cannot edit others' words; own deletion remains available
 - [x] Define irreversible deletion (D57): deleting a post deletes all comments/replies; no undo/restore; future DM shares must also be removed
 - [x] Define account deletion (D60): Settings, reauthentication and permanent confirmation; immediate hiding/access termination, irreversible content/relationship cleanup, unaffected vouched-for members and private retained report evidence only under a defined policy
 - [ ] Implement account deletion with immediate authorization denial/session revocation and idempotent cleanup; verify named/anonymous content, comments/likes elsewhere, follows/circles, concurrent writes, no restoration and no penalties or admission loss for invitees
-- [ ] Define and implement finite evidence/backup retention and deletion lifecycles for D57/D60; verify report isolation and that backup recovery cannot republish deleted accounts/content
+- [x] Define D62 lifecycle defaults: 30-day ordinary deletion/backups, 180-day closed-case evidence, documented holds, 12-month strike expiry and human reinstatement
+- [ ] Implement D62 cleanup/hold/backup lifecycles; prove exact deadlines and recovery behaviour with the chosen providers before real-member release
 - [ ] Implement confirmed owner-authorized post/conversation deletion, media/view cleanup and irreversible post/comment deletion; verify concurrent writes, direct reads and no restore/reconnect resurrection
 - [ ] Implement author-only comment text edits and server-controlled Edited state; verify immutable identity/parent, both identity modes, permission boundaries and removed-comment denial
-- [ ] Decide how account privacy changes affect drafts
+- [x] Define external-sharing policy (D45): no external member-content sharing, public post pages, copy-post-link actions, embeds or content downloads; onboarding links remain content-free
+- [ ] Implement content-free external notifications and public routes/previews; omit sharing/export controls and reconcile signed media delivery with authenticated access
+- [ ] Verify post/comment/media authorization and no content leakage through previews or notification payloads; document redistribution reporting and the limits of preventing capture
+
+### Relationships, Vouch Safeguards and Capture Alerts
+- [x] Define follower removal (D53): quiet removal also clears all of that owner's close-friends/circle memberships on public and private accounts; refollow never restores circles
+- [ ] Implement atomic owner-authorized follower/circle removal; verify private reapproval, public refollow, historical access revocation, unchanged other owners' circles and no removal notification/block/strike
+- [x] Define MVP people search (D52): username/display-name search with basic profile results, admission/block checks and no anonymous identity lookup
+- [ ] Implement people search and profile navigation; verify matches, duplicate display names, private accounts, both block directions, admission and absence of private account data or anonymous mappings
 - [x] Define vouch accountability (D38-D39): evidence-based findings and appeals; honest mistakes still earn strikes; three active strikes suspend the voucher's account; no recursive cascade
 - [ ] Implement private vouch-review records and independent vouching restrictions; enforce restrictions on issuance/affirmation, including pending requests, and preserve the waiting period and budgets
 - [ ] Implement voucher strike ledger and atomic three-strike account suspension; one strike per confirmed offending account, including honest mistakes
 - [ ] Verify reports alone do not count; cover first/second/third strikes, duplicates and concurrency, confirmed misuse, suspended/paused-voucher bypass attempts, factual appeals and unaffected invitees
-- [ ] Define suspension duration/reinstatement, strike expiry and future external phone-voucher consequences (D39)
-- [x] Define blocking (D40): underlying account, both directions, named and anonymous activity across Eve, without directly revealing anonymous identity
-- [x] Define external-sharing policy (D45): no external member-content sharing, public post pages, copy-post-link actions, embeds or content downloads; onboarding links remain content-free
-- [x] Define feed organization (D48): Following = eligible named posts from followed accounts; Community = app-wide named; Anonymous = app-wide anonymous; all chronological
-- [ ] Implement three feed queries/navigation with independent pagination and shared authorization; verify no anonymous posts in Following/Community and no restricted named posts in Community
+- [x] Define D39/D62 suspension and expiry: third-strike suspension persists until fewer than three active strikes remain and human reinstatement is approved
+- [ ] Implement and test expiry/reversal counting, duplicate-finding prevention and reinstatement races; external phone-voucher consequences stay deferred with that feature
 - [x] Define close-friends capture alerts (D46): notify the owner of detected screenshots/recording with the viewing account; circle content only, accurate platform-dependent wording
 - [ ] Implement supported screenshot and capture-state listeners, visible-circle-content attribution, authenticated event delivery and owner-only in-app notices; keep pushes generic and collect no captured files
 - [ ] Verify on physical devices: capture already active on entry, screenshots, recording/mirroring, multiple visible posts, deduplication, offline events and unsupported coverage; no automatic strikes or alerts for non-circle content
-- [ ] Implement content-free external notifications and public routes/previews; omit sharing/export controls and reconcile signed media delivery with authenticated access
-- [ ] Verify post/comment/media authorization and no content leakage through previews or notification payloads; document redistribution reporting and the limits of preventing capture
-- [ ] Implement private account block records, anonymous-target resolution and identity-preserving block management; enforce before all audience grants and on comments independently of parent authors
-- [ ] Verify block behaviour across feeds, direct reads/media, third-party threads, interactions, queued notifications and independent unblock actions; ensure blocks alone never issue voucher strikes
-- [ ] Demo app-wide posting from a private account, then restricted posting checked against a member outside the audience; verify pending applicants cannot read either
 
 ---
 
-## 0. Dates that don't move
+## 0. Target Dates (Reverify Before Acting)
 
 | Date | What | Notes |
 |---|---|---|
@@ -92,15 +114,17 @@ What launches, and what it replaces:
 | Was | Now (free) | Comes back when |
 |---|---|---|
 | Phone OTP via Twilio (~$0.05/user) | Email magic link via Supabase Auth, sent through a Gmail app password over SMTP | Ladder #4 |
-| Path A vendor ID check (~$1.50/user) | Path B only: 1 member vouch or a team invite. Schema and tier logic stay; the UI is hidden behind config | Ladder #7 |
+| Vendor ID check | Personal member vouch or approved team review; no vendor integration or automatic admission branch | Separate after-MVP approval, then funding |
 | Phone vouches | Not needed — the launch `vouch_policy` row requires 0 of them | Ladder #4 |
-| Vercel + Supabase + PostHog (~$50/mo) | Free tiers of all three | Ladder #6 |
-| Custom domain + Resend | `eve.vercel.app`, Gmail SMTP | Ladder #1 |
-| Legal review ($1–3k) | Template terms and privacy policy, honest about anonymity limits, cohort-only | Ladder #5, a hard gate |
+| Paid hosting | Cloudflare Pages static export plus Supabase/PostHog free plans, subject to limits and production-readiness checks | Upgrade on measured needs and terms |
+| Custom domain + Resend | Assigned `pages.dev` subdomain; Gmail SMTP subject to deliverability checks | Ladder #1 |
+| Legal review | Draft accurate terms/privacy notices; invitation-only use is not a legal exemption | Assess before real users; planned professional review is a hard gate for expansion |
 | Own Apple Developer account ($99/yr) | A friend's account: TestFlight public link for the cohort, App Store after. Built locally with Xcode, run on your iPhone with free personal signing | Ladder #9, then App Transfer |
 | Android | Same Expo codebase, not shipped. Seed cohort must be on iPhone until then | Ladder #3 ($25) |
 
-Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Everything else in the tier table is unchanged.
+Tier 1 is contact verified by email, not admitted. D59 controls admission and D62 controls lifecycle/suspension; historical mixed-membership or vendor tier logic must not be reused.
+
+The old assumption that Vercel Hobby is permitted until revenue begins is withdrawn. Its restrictions concern commercial purpose, not only collected revenue. See [Vercel fair-use guidelines](https://vercel.com/docs/limits/fair-use-guidelines). The chosen web deployment is a static export; verify routing/auth callbacks, terms and plan limits before publishing. See [Cloudflare static deployment](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/).
 
 ---
 
@@ -110,19 +134,19 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 
 **Build**
 - [ ] Expo project with `expo-router`, TypeScript, Supabase client — running in the iOS Simulator
-- [ ] Web export of the same project deployed to Vercel Hobby, for the waitlist page now and the voucher page later
+- [ ] Deploy the Expo static web export to Cloudflare Pages after terms/limits and routing checks; test waitlist, authenticated voucher page, auth callbacks and associated-domain files
 - [ ] Supabase project (free tier)
 - [ ] Bundle ID chosen as if permanent; entitlements limited to push and associated domains; no Sign in with Apple, no iCloud
 - [ ] Auth: email magic link, DOB gate, one account per email. Custom SMTP through a Gmail app password
-- [ ] The full schema from [architecture.md](architecture.md) — every table including `verifications`, `vouches`, `vouch_policy` and the business stub — with `phone_e164` nullable
+- [ ] Write versioned migrations from [architecture.md](architecture.md)'s current data dictionary; no speculative vendor/business tables or historical SQL copied into migrations
 - [ ] Insert the launch `vouch_policy` row: 1 member vouch, 0 phone vouches
-- [ ] RLS policies and the RLS test suite, run as a user at each tier and as a business account
+- [ ] Database privilege/RLS/API tests for pending, admitted, suspended, banned and deleting accounts, both block directions and unauthenticated access
 - [ ] A cron ping so the Supabase free project never pauses (it pauses after 7 idle days)
 
 **You**
 - [ ] Talk to the seven — Nabeeha, Karima, Tayyaba, Nurina, Urooj, Nighat, Hira. *How many Instagram accounts do you have, and why?* Write their words down verbatim
 - [ ] Waitlist page — a route in the same app, not a paid tool
-- [ ] File Form SS-4 for the EIN by fax or mail. Free, 4–8 weeks
+- [ ] Prepare entity/EIN information now; apply for the planned corporation's EIN only after state formation. Recheck the current international application process and timing. [IRS instructions](https://www.irs.gov/businesses/employer-identification-number)
 - [ ] Check the Bangkok B-1/B-2 appointment wait. The fee is the first money you'll spend, so know the date you'd need it by
 - [ ] **Friend's Apple account:** they add your Apple ID to App Store Connect as App Manager, create the app record with your bundle ID, enable TestFlight. Get a one-line written agreement that the app transfers to you on request
 - [ ] Confirm the seed cohort is on iPhone. Anyone on Android goes on the waitlist for ladder #3, not silently lost
@@ -136,9 +160,9 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 ### Week 2 · Sep 8–14
 
 **Build**
-- [ ] Composer: audience dial above the text field, identity dial with live preview, widening confirm, "+ add specific people"
-- [ ] Posts table behind it, `feed_posts` view with `security_invoker`
-- [ ] Feed with cursor pagination and the four indexes
+- [ ] Composer: named audience control (Everyone on Eve/Followers/Mutuals/Circle), anonymous fixed audience, identity preview and widening confirmation; defaults follow account privacy
+- [ ] Private posts/authorship tables and allowlisted database API projections; no direct client reads or redacting-view-only privacy boundary
+- [ ] Independent Following/Community/Anonymous feeds with `(created_at, id)` cursors; test equal timestamps and index query plans
 - [ ] Running on your own iPhone with free personal signing (7-day certificate, re-sign weekly)
 - [ ] By Friday: post to a chosen audience from the phone and see it in a feed
 
@@ -154,15 +178,15 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 
 **Build**
 - [ ] Follows, circles, circle management
-- [ ] Vouch flow, Path B only: hashed tokens, the voucher page, the declaration question, the explicit decline, `recompute_tier`
+- [ ] Personal-vouch flow: authenticated established voucher, hashed tokens, affirmation/decline, atomically enforced budget/restrictions and server-controlled admission
 - [ ] Team invite as a `kind = 'team'` vouch, so the founder can hand-verify the cohort
 - [x] Define launch admission (D59): personal vouching as the main route, Request team review for applicants without an existing member connection; no member content before approval
 - [ ] Implement team-review request/status and reviewer-only approval/decline, with private notes and idempotent team admission; verify applicants cannot approve themselves or bypass moderation restrictions
-- [ ] Reconcile admission SQL with D59: no automatic vendor/sex-marker admission or AI gender classification; verification upgrades remain in [to-do-after-MVP.md](to-do-after-MVP.md)
+- [ ] Implement D59 admission with no automatic vendor/sex-marker branch; upgrades remain in [to-do-after-MVP.md](to-do-after-MVP.md)
 - [ ] Anti-self-vouch: open-source FingerprintJS, same-IP flag for review
-- [ ] Path A: **nothing built.** Leave a config flag and a stub route
+- [ ] Keep vendor/phone-voucher integrations out of MVP; do not leave an executable hidden admission branch
 - [ ] Persistent audience badge on published posts
-- [ ] Voucher page on the web export — a voucher with no account never has to install anything
+- [ ] Voucher page on the web export: launch vouchers authenticate as established members; a token alone grants no vouching authority
 - [ ] Universal links: associated-domains entitlement plus `apple-app-site-association` on the web export, so a vouch link opens the app when installed and the web page when not
 
 **You**
@@ -183,17 +207,17 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 - [ ] Implement reporting and reviewer queue with reporter-only status access; verify identity protection, reviewer-only outcomes and no automatic penalty from report submission
 - [ ] Report, block, and the moderation queue, including D58 reporting/status flow
 - [ ] PostHog free tier: signup, verified, first post, D1/D7/D30 cohorts
-- [ ] Empty states: Tier 1 marker line, never a blank feed
+- [ ] Empty states: pending applicants see owner-only admission status, not a member-feed teaser; admitted members see authorized content/next actions
 - [ ] Profile counts private by default, `stats_public_at` after 30 days
 - [x] Define MVP notifications (D61): recipient-private Activity, optional generic push, thread-safe anonymous identities, current-access checks and no like notifications
 - [ ] Implement Activity for comments/replies, follow requests/approvals, vouch requests, admission updates, report outcomes and capture alerts; include read state and recipient-only access
 - [ ] Implement optional generic push via `expo-notifications` and the social-push setting; disabling push must preserve in-app Activity
 - [ ] Verify D61 event deduplication, recipient/status isolation, anonymous identities, push payload privacy, queued preference changes, stale destinations and absence of like notifications
 - [ ] App Privacy labels and privacy-policy URL filled in App Store Connect (required for beta review too)
-- [ ] **First TestFlight build uploaded by Wednesday** through the friend's account. Beta App Review clears by Friday. Report, block and the moderation queue are in this build — Guideline 1.2
+- [ ] Target the first external TestFlight build only after the real-member gate passes. Verify current store requirements and allow variable review time; do not promise Friday approval
 
 **You**
-- [ ] Seed the Founders' Board. 20 members posting before anyone else is admitted
+- [ ] After the readiness gate, admit and seed the founding cohort; target 20 contributing members before expansion, without blocking the initial founders from joining
 
 **Social**
 - [ ] Three videos. One teases the rant section without showing any real post — a blank composer with *Anonymous* selected is enough
@@ -201,23 +225,24 @@ Tier 1 is "contact verified" — email at launch, phone once SMS is funded. Ever
 
 ### Week 5 · Sep 29 – Oct 5
 
-- [ ] Private launch through the TestFlight public link. Cohort invites outward with their vouch budgets
-- [ ] Submit to the App Store early in the week. Expect one rejection round on anonymous user content; answer with the moderation queue and the contact address. A released version is what makes App Transfer possible later
+- [ ] Private TestFlight launch after readiness checks, with server-enforced cohort-only admission; outward expansion remains separately gated
+- [ ] Submit to the App Store when readiness and current store checks pass; timing/review rounds are not guaranteed. Keep review evidence and contact details ready
 - [ ] Watch the install step in the vouch funnel: link tapped → app installed → account created. If the drop is large, that's the PWA argument coming back as data
+- [ ] Enforce the cohort-only/expansion flag and team-approved founding invitations across both admission paths; allow only audited privileged changes after the expansion gate. A capacity cap may supplement this, but cannot identify cohort membership or replace the gate
 
 **Social**
-- [ ] Record the three-second shot — a post visible from her phone, invisible from a man's — and post it everywhere. This is the whole product and the best hook you'll ever have
+- [ ] Record a synthetic-data demo: a private account's app-wide post is visible to an admitted non-follower, while its Followers/Circle post is not; pending applicants see neither
 - [ ] Waitlist number as a weekly post: *"312 women waiting."* Real numbers only
 - [ ] Watch daily: verification completion, posts per active member per week, W1 retention
 - [ ] Fix what the numbers say
 - [ ] Business track, free version: a one-page "Reach verified women" waitlist, then pitch 5–10 Pakistani boutique / beauty / fashion brands. Target signed LOIs at a named price. Conversations cost nothing
-- [ ] Do **not** open beyond people you or a member personally invited — see ladder #5
+- [ ] Do **not** expand beyond the approved founding cohort until the expansion gate passes, even when an existing member offers a vouch
 
 ### Week 6 · Oct 6–12
 
 - [ ] Nothing new. Fix and polish
 - [ ] Write the application
-- [ ] Record the demo from the TestFlight or App Store build on a real iPhone: sign up, get vouched, pick *Women only*, post, show it invisible from a man's account
+- [ ] Record the current women-only admission and per-post audience demo on a real iPhone with synthetic accounts/content; no removed gender toggle or male-member account
 - [ ] Rehearse: verification economics, inclusion policy in one sentence, why Meta won't copy it
 - [ ] Submit SPEEDRUN on 12 October
 - [ ] Start the YC application the same day. Same answers, same demo. Submit by 2 Nov, 8pm PT, with three more weeks of retention data in it
@@ -242,10 +267,10 @@ When money arrives, buy in this order. Each row says what it unlocks and the tri
 | 1 | Domain | ~$12/yr | Real links in WhatsApp, sender reputation, Resend free tier for magic links | First $12 you have |
 | 2 | B-1/B-2 visa fee | $185, possibly plus a separate visa integrity fee — check the current amount | The 12-week program is impossible without it, and the clock isn't yours | As soon as you can, regardless of product |
 | 3 | Google Play Console | $25 one-time | Android — the same Expo codebase, and the majority platform in Pakistan. New personal accounts must pass a closed test (12+ testers, 14 days — verify) before production, so start it the day you pay | As soon as the visa fee is covered. Every Android name on the waitlist is a reason |
-| 4 | Twilio Verify + Lookup | ~$10 to start, ~$0.05/user | Phone verification, one-account-per-number, phone vouches, the growth `vouch_policy` phase | Before anyone joins who wasn't personally invited by a member |
+| 4 | Future SMS/phone verification | Requote when approved | Optional later phone identity and phone-vouch workflows | After separate approval and funding; not a hidden prerequisite for D59 team admission |
 | 5 | Legal review | $1–3k | Opening beyond the hand-invited cohort. Anonymous posting among strangers without reviewed terms is the one risk not to take | **Hard gate** before public opening |
-| 6 | Vercel Pro | $20/mo | Commercial-use terms, more bandwidth for the web export | When Vercel asks, or traffic needs it. Cloudflare Pages is a free alternative that allows commercial use |
-| 7 | Path A vendor (Persona / Veriff / Stripe Identity) | ~$1.50/user | Instant verification for people the vouch graph can't reach | When more than ~30% of the waitlist has waited over 7 days for a vouch |
+| 6 | Hosting upgrades | Recheck current pricing | Capacity, reliability and supported production features | Before plan limits or terms require it; not after a provider warning |
+| 7 | Future verification provider | Requote after design review | Optional identity/age/liveness evidence, not automatic gender eligibility | Only after an explicit post-MVP decision; first measure the D59 team-review queue |
 | 8 | Incorporation via Stripe Atlas | ~$500, then $1–2k/yr | Receiving investment | On acceptance, a term sheet, or revenue — never on a date |
 | 9 | Your own Apple Developer account | $99/yr, org enrolment needs a D-U-N-S (free, ~5 days) | App Transfer from the friend's account: the app, its ratings and history become yours | Right after incorporation, or the moment the friend needs the account back. Needs one released App Store version first |
 
@@ -256,7 +281,7 @@ When money arrives, buy in this order. Each row says what it unlocks and the tri
 | Service | Free tier | Watch for |
 |---|---|---|
 | Supabase | 500 MB database, 1 GB storage, 50k monthly users | **Pauses after 7 idle days** — the cron ping above. Built-in email is rate-limited to a handful an hour, hence Gmail SMTP |
-| Vercel Hobby | 100 GB bandwidth | Terms say non-commercial. Fine pre-revenue; move when it isn't |
+| Cloudflare Pages static export | Recheck current free-plan limits | Validate terms, deployment output, callbacks and routing before publishing; Vercel Hobby is not the commercial-launch fallback |
 | PostHog | 1M events/month | Nothing at this scale |
 | Gmail SMTP | ~500 emails/day per account | Fine for 50–200 people who know you. Not for strangers — that's ladder #1 |
 | FingerprintJS OSS | Unlimited | Weaker than the paid version, and it was only ever a signal |
@@ -269,8 +294,8 @@ When money arrives, buy in this order. Each row says what it unlocks and the tri
 ## 5. What zero-budget costs you — be honest about it
 
 - **Email is a weaker identity than phone.** One-account-per-email is trivially gameable. Launch admission therefore also requires a member vouch or team invitation. A banned user returning with a new email still needs a new vouch; knowing assistance with ban evasion is investigated under D38. Waiting periods, budgets and moderation limit abuse, but a first false vouch may escape detection. Confirmed offending accounts produce voucher strikes even for honest mistakes, with account suspension at three (D39); unrelated invitees are not automatically sanctioned.
-- **No reviewed terms** while the app is cohort-only. Acceptable among people you personally invited. Not acceptable one person beyond that.
-- **No instant door.** Someone who knows nobody waits on the waitlist. That's the bootstrap risk D18 was meant to solve; the ladder brings it back at #6 the moment the waitlist shows the problem.
+- **Legal/privacy readiness is not waived by invitations.** Accurate notices, defined retention, consent where needed and working moderation are cohort gates; planned professional review remains an expansion gate.
+- **Human admission takes time.** Applicants without an existing-member connection can request team review. Track queue age/capacity; there is no mandatory Instagram check or promised instant vendor route.
 - **Gmail deliverability** is fine for known recipients and bad for strangers. Ladder #1 fixes it for twelve dollars.
 - **iOS first in an Android country.** Until the $25 Play fee is paid, every Android woman in the cohort is on a waitlist. Count them; they're the argument for ladder #3.
 - **The app is your friend's until it's transferred.** A transfer needs a released App Store version and a friend who still says yes. The written one-liner and the early submission are the whole mitigation.
@@ -290,7 +315,7 @@ When money arrives, buy in this order. Each row says what it unlocks and the tri
 
 **Hooks that come from the product itself:**
 - The audience dial chosen *before* typing
-- The three-second shot: visible on her phone, invisible on his
+- The three-second shot: app-wide named content visible to an admitted non-follower, restricted content hidden from her
 - *"Anonymous to other members, not to us"* said out loud — honesty is a hook
 - The waitlist count, weekly, real
 - *"No ads in your feed, ever. Businesses live in their own room."*
