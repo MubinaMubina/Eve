@@ -1,6 +1,6 @@
 # Eve — Product Definition v1
 
-*Started 31 Aug 2026, last updated 5 Sep 2026. **Living document** — decisions here are settled-for-now, not final. When a new idea lands, we argue it out in conversation, then this file gets the verdict. [conversation-log.md](conversation-log.md) keeps the why.*
+*Started 31 Aug 2026, last updated 6 Sep 2026. **Living document** — decisions here are settled-for-now, not final. When a new idea lands, we argue it out in conversation, then this file gets the verdict. [conversation-log.md](conversation-log.md) keeps the why.*
 
 ## Current launch decision: women only
 
@@ -8,7 +8,7 @@
 
 **A private account can publish an app-wide post.** Named posts can choose Everyone on Eve, Followers, Mutuals, or A circle of selected close friends. Anonymous posts always use Everyone on Eve (D41). Everyone on Eve means the admitted women in the app, not the open internet. There is no separate Women only switch or additional gender filter in v1. Publishing app-wide does not change the account's privacy or the audience of its other posts.
 
-This decision supersedes the earlier mixed-membership model. Verification now controls admission to the member community; the old public-post lobby is removed. D31-D37 below define follow approval, new-post defaults, account privacy changes, circle access, and comment visibility and identity. Detailed onboarding remains open.
+This decision supersedes the earlier mixed-membership model. Verification now controls admission to the member community; the old public-post lobby is removed. The decisions below define the launch behaviour. Personal vouching and Request team review are the admission routes (D59); public/private privacy is selected during signup (D50). The release gates and approved lifecycle defaults are in [release-readiness.md](release-readiness.md).
 
 ### Private-account follow requests (D31)
 
@@ -89,7 +89,7 @@ Deleting a named or anonymous post automatically deletes its comments and replie
 
 When DMs are introduced after MVP, recipients may view a shared post only while they remain eligible under its original audience, admission and blocking rules. Deleting the source post must remove the shared-post item and its preview from every DM where it was shared, without deleting unrelated messages. A DM share must not preserve an independent copy of the post or its comments. See [to-do-after-MVP.md](to-do-after-MVP.md).
 
-The member-facing deletion operation is final. Existing moderation reports remain separate under D44; internal evidence and backup retention still require a defined lifecycle and do not provide a member restore option.
+The member-facing deletion operation is final. Existing moderation reports remain separate under D44; internal evidence and backup retention follow D62 in [release-readiness.md](release-readiness.md) and never provide a member restore option.
 
 ### Account deletion (D60)
 
@@ -97,7 +97,7 @@ Offer Delete account in Settings, requiring reauthentication and a clear permane
 
 There is no undo, account restoration or recoverable trash. Immediate removal from member-visible surfaces is separate from background storage cleanup; do not promise every stored copy disappears instantly. Apply D57's media, preview and future DM-share removal rules to deleted posts.
 
-Women she vouched for retain their accounts; ordinary account deletion does not itself revoke their admission, issue voucher strikes or cause suspensions. Existing reports may still be reviewed. Retain only necessary evidence privately under a defined retention policy, with a separate backup-deletion lifecycle; retained data must not become visible or restorable member content. Retention periods still need definition before implementation.
+Women she vouched for retain their accounts; ordinary account deletion does not itself revoke their admission, issue voucher strikes or cause suspensions. Existing reports may still be reviewed. Retain only necessary evidence privately under a defined retention policy, with a separate backup-deletion lifecycle; retained data must not become visible or restorable member content. D62 sets the cleanup, backup and case-evidence deadlines in [release-readiness.md](release-readiness.md).
 
 ### Anonymous labels and avatars (D37)
 
@@ -215,11 +215,11 @@ One composer. Two dials.
 
 That's the whole product. Everything else is a feed showing you what you're allowed to see.
 
-### Why this makes the rant section nearly free
+### Anonymous conversations share the post system
 
 The rant section isn't a second product. It's a **combination of the two dials**: anonymous + a wide audience. The "rant feed" is a view over the same table, filtered to anonymous posts.
 
-Build the composer properly and you get the rant section as a toggle rather than a separate build. That resolves the biggest contradiction in your answers — you cut the rant section in Round 05, but four other answers (1.3, 1.4, 4.2, 4.5) say it's the reason anyone comes back. It's in v1, and it's cheap, because it's the same primitive.
+Build the composer properly and you get the rant section as a toggle rather than a separate build. That resolves the biggest contradiction in your answers — you cut the rant section in Round 05, but four other answers (1.3, 1.4, 4.2, 4.5) say it's the reason anyone comes back. It stays in v1, but private authorship, thread aliases, blocks and moderation require their own implementation and tests.
 
 Two details that make it work:
 - **Replies inherit the post's audience (D35).** The identity dial is available only on anonymous posts, where a reply can be named or anonymous. Named posts accept named replies only. One level of threading, not Reddit's full tree.
@@ -227,9 +227,9 @@ Two details that make it work:
 
 ---
 
-## Verification: two doors, one tier
+## Launch admission: personal vouch or team review
 
-*Revised 4 Sep 2026 (supersedes the vouch-only model of 1 Sep). Full mechanics in [architecture.md](architecture.md).*
+*Reconciled 6 Sep 2026. Current admission contract in [architecture.md](architecture.md); historical vendor proposals are not launch instructions.*
 
 ### Launch admission (D59, 5 Sep)
 
@@ -239,17 +239,15 @@ Eve remains women-only, including trans women. Do not use AI gender classificati
 
 ID/selfie verification and other verification upgrades are after-MVP review items, not launch requirements or automatically approved future admission rules. See [to-do-after-MVP.md](to-do-after-MVP.md). This launch decision supersedes the older automatic Path A admission proposal.
 
-### The prime directive: Eve never stores an image
+### Verification media stays out of Eve
 
-Tea's breach (72,000 verification selfies and government IDs in a public bucket, five consolidated federal class actions) fixed the one non-negotiable rule: **whatever the method, no document, selfie, or face template ever touches Eve's infrastructure.** Vendor-hosted capture, attributes back by webhook, four fields in our database. We cannot leak what we never possessed.
+Do not collect or store IDs, verification selfies or face templates in Eve. This does not prohibit ordinary member-uploaded post photos, which require private storage, audience enforcement and deletion controls.
 
-### Path A - vendor verification (deferred; requires redesign)
+### Vendor verification (after MVP)
 
-Vendor-hosted ID + liveness check (Persona / Veriff / Stripe Identity, ~$1–2). Works at user number one, which solves the bootstrap problem vouching alone cannot. Tea proved the friction is survivable: 1.7M women uploaded IDs to a safety app.
+ID/age/liveness checks are deferred for separate evaluation of privacy, accessibility, retention, cost and admission rules. No vendor integration, gender classifier or document-marker admission gate ships in MVP. See [to-do-after-MVP.md](to-do-after-MVP.md).
 
-The previous proposal to fast-track admission using gender estimation or a document sex-marker match is superseded by D59. Identity, age and liveness checks are distinct from membership eligibility. Any future vendor route needs a fresh review of privacy, retention, cost, accessibility and admission rules before implementation; do not enable automatic Tier 2 admission from a vendor result.
-
-### Path B — vouching (free, human, always available)
+### Personal vouching (main launch route)
 
 Vouches from people who personally know you are the main launch route. The number and kind are policy settings that may tighten as the graph grows (table below). No ID upload is required at launch. Applicants without an existing-member connection can request team review under D59; this is a human admission decision, not proof of gender or a legal guarantee.
 
@@ -285,6 +283,8 @@ How many of each Tier 2 needs is configuration, not code, and tightens as the gr
 | Growth | ~200–2,000 | 1 member vouch + 1 phone vouch |
 | Maturity | 2,000+ | 2 member vouches |
 
+Only the launch row is enabled for MVP. Later thresholds are planning settings, not automatic switches at a member count. A phone-dependent phase cannot activate until that deferred feature, its policy and funding are approved; Request team review remains available under D59.
+
 Tightening never demotes anyone already verified. Demotion is only ever explicit: a ban, or a change of declared gender.
 
 **Vouch affirmation:** *"I personally know this person and, to my knowledge, she meets Eve's membership requirements. If this account is confirmed fake or ineligible, or removed for harmful conduct, I receive a strike even if my vouch was an honest mistake. Three strikes suspend my account. Knowingly providing a false vouch or helping someone evade a ban can also lead to losing my vouching privileges."* Keep the explicit "I don't vouch for this person" option and do not reveal a decline to the applicant. At launch, member vouches use the established account identity; phone verification for phone vouchers remains deferred until SMS is funded. The old automatic phone-blacklisting policy is not reinstated.
@@ -305,17 +305,15 @@ A vouch confirms personal knowledge and membership eligibility; it cannot guaran
 
 **Three-strike rule (D39):** issue one strike to each responsible voucher for a distinct account she affirmed that is confirmed fake or ineligible, or removed for harmful conduct. An honest mistake is not an exemption. Reports, suspicions, ordinary account deletion and duplicate findings on the same account do not create additional strikes. Show the voucher her count and a reason that does not expose reporters. At three active strikes, suspend her account, not just her ability to vouch.
 
-Appeals can challenge an incorrect finding, mistaken vouch attribution or duplicate strike. If overturned, reverse the associated strike and review any suspension that depended on it; do not clear unrelated restrictions. Claiming honest intent alone does not erase a valid strike. Suspension duration, reinstatement requirements, strike expiry, and the future treatment of external phone vouchers still need decisions before implementation.
+Appeals can challenge an incorrect finding, mistaken vouch attribution or duplicate strike. If overturned, reverse the associated strike and review any suspension that depended on it; do not clear unrelated restrictions. Claiming honest intent alone does not erase a valid strike. D62 defines valid-strike expiry after 12 months. A third-strike suspension continues until fewer than three active strikes remain and a human approves reinstatement; expiry alone never restores access. Remaining valid strikes and independent sanctions are preserved. External phone-voucher consequences remain deferred with that feature. See [release-readiness.md](release-readiness.md) for the complete lifecycle and review rules.
 
 Do not automatically revoke all previous vouches or remove everyone connected to a suspicious voucher. A suspension caused solely by voucher strikes does not itself create strikes for that voucher's own vouchers; otherwise this would recreate the rejected cascade. Review other implicated accounts individually. A first deliberate false vouch may escape detection; the existing waiting period, vouch budget and ongoing moderation limit abuse without proving honesty.
 
-### The waitlist — for people who know nobody
+### Request team review
 
-A waitlist, not an adjudication. They submit their Instagram handle; Eve generates a code that expires in 30 minutes; they put it in their bio; **a reviewer opens instagram.com/[handle] directly and checks.** No media is ever accepted from the applicant — anything they upload can be generated, so nothing they upload is evidence.
+Applicants without an existing-member connection can request admission review inside the onboarding flow. Show their own pending/approved/declined status without exposing member content or internal notes. An authorized team member records the decision; approval uses the same admission gate as personal vouching.
 
-The reviewer checks account age and history, follower quality, and presence in *other people's* accounts — the last being the hardest thing to fake, because a manufactured persona is an island.
-
-Your team then **invites** from that list in batches, seeding clusters the graph hasn't reached. Choosing who to invite is a normal thing an invite-only network does; ruling on whether someone's gender claim is true is a different activity with a different legal shape.
+The old mandatory Instagram-handle, timed bio-code and social-profile inspection flow is retired. No social account or uploaded verification media is required for this fallback. Do not judge eligibility from appearance or voice or promise a review turnaround time. Collect only the context needed for the review under the D62 retention policy.
 
 ### Anti-self-vouching
 
@@ -364,9 +362,9 @@ The obvious attack — a man registers "a business" — buys him a broadcast cha
 
 **Women: free.** Marketplace logic — subsidize the side that creates the value, charge the side that extracts it. Launch market is Pakistan; consumer ARPU is low there, and the trust ask at signup is already high. Founding pass and premium controls (extra circles, scheduling, expiring posts) stay as optional revenue, never a gate.
 
-**Businesses pay:**
-- **Subscriptions**, tiered: Starter (~$25–50/mo, profile + posting) → Growth (+ audience-composition analytics — *"your audience is 100% verified women"* is the sales pitch) → Scale (~$150–300/mo, + placement in a labeled Discover tab)
-- **Creator/PR marketplace:** women creators opt into a brand-deals directory; Eve brokers matches and takes 10–15%. Differentiator: every follower is a verified woman, so influencer metrics are bot-free by construction — a known, expensive fraud problem elsewhere
+**After-MVP business proposals (not launch commitments):**
+- **Subscriptions**, tiered: Starter (~$25–50/mo, profile + posting) → Growth (+ audience-composition analytics — *"reach Eve's admitted women-only community"* is the proposed positioning, without a guarantee of perfect verification) → Scale (~$150–300/mo, + placement in a labeled Discover tab)
+- **Creator/PR marketplace:** women creators opt into a brand-deals directory; Eve brokers matches and takes 10–15%. Any future audience metrics must describe actual admission and fraud controls; vouching cannot guarantee bot-free or perfectly verified membership
 - **Later:** commerce take-rate on checkout
 
 **The feed promise (revised from "no ads ever"):** *Your feed is never for sale — no injected ads, no data selling. Businesses live in their own labeled spaces, and you choose to follow them.* Personal feeds stay clean permanently; sponsored placement exists only in the labeled Discover tab.
@@ -379,10 +377,12 @@ Rough math: 500 businesses at a blended $100/mo = **$600k ARR** — a quarter of
 
 ### Build
 
+- **Text, image and video posts (D64)** - members can post photos and videos as well as text. Media posts may have an optional caption. Images and videos belong to the post and inherit its current audience, admission, block, moderation and deletion rules. Both named and anonymous posts support media; anonymous media posts remain app-wide. This supersedes the earlier decision to defer video.
+
 - **People search (D52)** — username/display-name search for admitted members, respecting blocks and existing profile visibility
 
 - **A native app** — iOS first (Expo, shipped through a friend's Apple account), Android from the same codebase once the Play fee is paid. Web only for the waitlist and the voucher page
-- **Invite / vouch onboarding** — links, pending state, public vouches, revocation
+- **Admission onboarding (D59)** — authenticated personal vouches or Request team review, owner-only status, no public vouch graph and no member content before admission
 - **The composer** — audience and identity dials on posts; replies inherit the audience and offer the identity dial only on anonymous posts (D35)
 - **Following and Community feeds** — chronological named-post views, respecting every audience rule (D48)
 - **Anonymous feed** — chronological app-wide anonymous posts, filtered from the same posts (D41/D48); replaces the Rant view label
@@ -390,19 +390,24 @@ Rough math: 500 businesses at a blended $100/mo = **$600k ARR** — a quarter of
 - **Circles** — named custom audience lists
 - **Likes and replies** — one level of threading
 - **Report, block, and a human moderation queue you actually read**
+- **Account/post deletion and lifecycle controls (D57/D60/D62)** — immediate hiding, permanent cleanup and private evidence retention
+- **Activity and optional generic push (D61)** — current-access checks; no like notifications
+- **Close-friends capture alerts (D46)** — best-effort supported detection, verified on physical devices
+- **Vouch safeguards (D39/D62)** — budgets, reviewed strikes, expiry and human reinstatement
 
 ### Cut
 
 - **Saved posts / bookmarks (D49).** Deferred until after MVP. The proposed behaviour is recorded for later review in [to-do-after-MVP.md](to-do-after-MVP.md).
 
-- **Video.** Text and images only for v1. Video means transcoding, CDN, storage cost, and a week you don't have. Your product is "post the thing you wouldn't post" — that's mostly words and pictures. Video is v2.
 - **AI comment moderation.** Report and block are non-negotiable; the automated filter is not. Human queue at 200 users.
 - **DMs.** Your own 5.3 flagged these as reflex-copied from Instagram. They're also your largest safety liability.
-- **Pinterest boards, AI video generation, creator payouts, custom algorithm.** All correctly cut in Round 05. Keep them cut. Business revenue is a different thing: it's pre-sold before 12 Oct and built after (see Monetization). Nothing of it ships in v1 beyond the schema stub.
+- **Pinterest boards, AI video generation, creator payouts, custom algorithm.** All correctly cut in Round 05. Keep them cut. Business revenue is a different thing: it's pre-sold before 12 Oct and built after (see Monetization). None ships in v1; do not create speculative vendor/business tables as a substitute for later design.
 
 ### The engineering shape
 
-Every post row carries `audience_type`, `audience_ref`, and `is_anonymous`. Every read path filters on the viewer's relationship to that row. Get that right on day one — retrofitting per-post visibility into a schema that assumed public posts is a rewrite, not a migration.
+Image/video uploads, playback, private derivatives and deletion are MVP work, not a later upgrade. Strip identifying file metadata before delivery and do not expose original filenames or private authorship through media responses. Anonymous labels cannot conceal faces, voices or identifying content that the member herself includes. Production file formats, size/duration limits and per-post attachment counts remain implementation decisions; the local preview's limits are not permanent product policy. No public buckets or externally usable bearer media URLs.
+
+Each private post record carries `audience_type`, an optional circle reference, and immutable `is_anonymous`. Every read first checks admission, status, deletion and blocks, then the audience. Member-facing database functions return authorized projections without real anonymous authorship. Get that right on day one — retrofitting per-post visibility into a schema that assumed public posts is a rewrite, not a migration.
 
 ---
 
@@ -450,7 +455,7 @@ Honest list. Don't paper over these in an application; have answers.
 
 ---
 
-## Still open
+## Product Learning (Not Build Gates)
 
 - **3.2** — the verb. "Share" is too weak; every app is share. Yours is closer to *choose*, or *decide who sees this*. Worth getting right, it shows up everywhere.
 - **2.4** — do your users describe the problem the way you do? Still unanswered, and it's an interview question, not a thinking question. Ask the seven women in 2.1 this week.

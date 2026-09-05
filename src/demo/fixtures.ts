@@ -1,0 +1,127 @@
+import { World } from "../domain/model";
+
+export const demoMemberId = "demo-you";
+export function createDemoWorld(): World {
+  return {
+    members: [
+      {
+        id: demoMemberId,
+        name: "You",
+        handle: "yourspace",
+        privacy: "private",
+        admitted: true,
+        eligible: true,
+        status: "active",
+      },
+      {
+        id: "demo-alia",
+        name: "Alia",
+        handle: "alia.notes",
+        privacy: "public",
+        admitted: true,
+        eligible: true,
+        status: "active",
+      },
+      {
+        id: "demo-noor",
+        name: "Noor",
+        handle: "noor.reads",
+        privacy: "private",
+        admitted: true,
+        eligible: true,
+        status: "active",
+      },
+      {
+        id: "demo-sana",
+        name: "Sana",
+        handle: "sana.makes",
+        privacy: "public",
+        admitted: true,
+        eligible: true,
+        status: "active",
+      },
+      {
+        id: "demo-pending",
+        name: "Pending applicant",
+        handle: "pending",
+        privacy: "private",
+        admitted: false,
+        eligible: true,
+        status: "pending",
+      },
+    ],
+    follows: [
+      { follower: demoMemberId, followee: "demo-alia" },
+      { follower: demoMemberId, followee: "demo-noor" },
+      { follower: "demo-noor", followee: demoMemberId },
+    ],
+    blocks: [],
+    circles: [
+      {
+        id: "your-close-friends",
+        ownerId: demoMemberId,
+        name: "Close friends",
+        members: ["demo-noor"],
+      },
+      {
+        id: "noor-close-friends",
+        ownerId: "demo-noor",
+        name: "Close friends",
+        members: [demoMemberId],
+      },
+    ],
+    posts: [
+      {
+        id: "seed-6",
+        authorId: "demo-alia",
+        text: "A small win today: I finally asked for the credit I deserved at work. My voice shook. I said it anyway.",
+        anonymous: false,
+        audience: "everyone",
+        createdAt: "2026-09-06T10:06:00Z",
+      },
+      {
+        id: "seed-5",
+        authorId: "demo-sana",
+        text: "What is one thing you are making time for this week?\n\nMine is drawing again. No project, no plan. Just a page.",
+        anonymous: false,
+        audience: "everyone",
+        createdAt: "2026-09-06T10:05:00Z",
+      },
+      {
+        id: "seed-4",
+        authorId: "demo-noor",
+        text: "Sunday reading check-in. I finished the book, then immediately missed everyone in it.",
+        anonymous: false,
+        audience: "everyone",
+        createdAt: "2026-09-06T10:04:00Z",
+      },
+      {
+        id: "seed-3",
+        authorId: "demo-noor",
+        text: "Keeping this little update close: I sent the application. Thank you for being the people I could tell first.",
+        anonymous: false,
+        audience: "circle",
+        circleId: "noor-close-friends",
+        createdAt: "2026-09-06T10:03:00Z",
+      },
+      {
+        id: "seed-2",
+        authorId: "demo-sana",
+        text: "Does anyone else feel proud of how far they have come and still a little lost about what comes next?",
+        anonymous: true,
+        authorNumber: 4827,
+        audience: "everyone",
+        createdAt: "2026-09-06T10:02:00Z",
+      },
+      {
+        id: "seed-1",
+        authorId: "demo-alia",
+        text: "I said no without writing a whole paragraph to explain myself. That is the entire update.",
+        anonymous: true,
+        authorNumber: 9153,
+        audience: "everyone",
+        createdAt: "2026-09-06T10:01:00Z",
+      },
+    ],
+  };
+}

@@ -1,14 +1,17 @@
 # Eve — Conversation Log
 
-*Working sessions, 30 Aug – 4 Sep 2026. This is a record of what was decided and why, not a transcript. The reasoning is the valuable part — the conclusions alone won't survive contact with a co-founder or an investor question.*
+*Working sessions, 30 Aug - 6 Sep 2026. This is a record of what was decided and why, not a transcript. The reasoning is the valuable part — the conclusions alone won't survive contact with a co-founder or an investor question.*
+
+**History notice (6 Sep):** Older decisions and research below preserve what was believed at the time; they are not current build instructions or verified legal/financial advice. D30-D62 and the current product spec supersede earlier mixed-membership, public-lobby, vendor-verification and privacy assumptions. Use [release-readiness.md](release-readiness.md) for gates/lifecycles and reverify external dates, eligibility, pricing and legal requirements before acting.
 
 **Files in this project**
 - [questions-before-code.md](questions-before-code.md) — the 39-question thinking pass, with your answers
-- [product-v1.md](product-v1.md) — product spec, current as of 4 Sep
+- [product-v1.md](product-v1.md) — current product spec
 - [architecture.md](architecture.md) — composer, feed, data model, authorization, security
 - [roadmap.md](roadmap.md) — the rebuilt six weeks
 - [todo.md](todo.md) — the checklist, the zero-budget configuration, and the spend ladder
 - [to-do-after-MVP.md](to-do-after-MVP.md) — deferred features for later review
+- [release-readiness.md](release-readiness.md) - release gates and approved lifecycle defaults
 - [conversation-log.md](conversation-log.md) — this file
 
 ---
@@ -28,6 +31,27 @@
 ---
 
 ## 2. Decision log
+
+### D64 - Image and video posts are in MVP *(user's scope clarification)*
+
+The user clarified that members can post videos and images too. Image and video posts are therefore part of MVP, superseding the earlier video deferral. Existing audience, anonymity, blocking, moderation, sharing and deletion decisions apply to the whole post, including its media. Media captions are optional in the initial implementation; no new feed, editing suite, music catalog or external sharing feature is implied.
+
+The local preview initially supports one image or video attachment per post. Its 10 MB image / 50 MB video bounds are provisional development limits, not approved permanent product policy. Production limits, protected upload/transcoding and delivery still need implementation and validation before real-member access.
+
+### D63 - Reconcile the implementation documents *(6 Sep, user's request)*
+
+The user requested fixes to the eight review findings. Replaced the unsafe partial SQL with a private-data/API contract, mandatory admission/status/block checks before every audience, explicit safe projections and stable two-field feed cursors. Versioned migrations and runtime tests are the next build step; no database enforcement is claimed implemented.
+
+All approved MVP safeguards remain required before the first real-member cohort. Removed the silent post-October deferral of voucher controls, follower removal, search and capture alerts. Cohort control is an explicit admission gate, not only an active-member cap. Retired mandatory Instagram-bio verification, vendor-selection tasks and the mixed-membership demo from active instructions.
+
+Changed the static web target from Vercel Hobby to Cloudflare Pages with production terms/routing checks; the pre-revenue exemption claim is withdrawn. Corrected the planned corporation's formation-before-EIN order. Historical research remains archived and must be reverified before external commitments. See the linked official sources in todo/roadmap.
+
+### D62 - Approved retention, strike expiry and reinstatement defaults *(6 Sep, explicit user approval)*
+
+The user approved: ordinary deleted data and backups erased/expired within 30 days of deletion; report evidence erased 180 days after the case and appeals close, except documented holds; voucher strikes expire 12 months after issuance; third-strike suspension lasts until fewer than three active strikes remain and a human approves reinstatement.
+
+Immediate hiding/access termination and no undo remain unchanged. Expiry alone does not reactivate an account, erase remaining valid strikes or clear independent sanctions. Documented holds require scope, reason, reviewer and review/expiry dates. The operational lifecycle, deadline checks and release gates are centralized in [release-readiness.md](release-readiness.md). These are approved product defaults subject to legal review, not provider configuration or a legal-compliance guarantee.
+
 
 ### D61 - MVP notifications; pre-build decision pass complete *(5 Sep, user's approval)*
 
@@ -309,7 +333,7 @@ Dropping the camera also dissolved the minors problem — that was only serious 
 
 *Launch tactic:* seed the founding cohort **across clusters, not within one.** Fifty women who all know each other is one dense pocket. Fifty from different cities, universities and friend groups is fifty expansion fronts.
 
-### D11 — Video cut from v1
+### D11 — Video cut from v1 *(superseded by D64)*
 Text and images only. Video means transcoding, CDN, storage cost and about a week. "Post the thing you wouldn't otherwise post" is mostly words and pictures.
 
 ### D12 — Mobile web PWA before native *(superseded by D28)*
@@ -397,9 +421,9 @@ Not exclusive at application stage, same demo for all three. **YC** is the prima
 
 ---
 
-## 3. Research findings
+## 3. Historical Research (Reverify Before Acting)
 
-*Facts gathered during these sessions, with sources. Easy to lose, expensive to re-derive.*
+*Historical notes, not current operational advice. Source coverage is incomplete; confirm external claims with primary sources before spending, applying, making a public claim or choosing a legal/immigration route.*
 
 ### a16z SPEEDRUN
 - **SR008 starts early 2027.** Priority application window **12 Oct – 1 Nov 2026**; applications accepted year-round on a rolling basis. Reviews take 4–6 weeks, then a video pitch or 15-minute interview.
@@ -460,9 +484,10 @@ Not exclusive at application stage, same demo for all three. **YC** is the prima
 1. **The verb (3.2).** "Share" is too weak; every app is share. Yours is closer to *choose*, or *decide who sees this*.
 2. **2.4 — do your users describe the problem the way you do?** Unanswered. It's an interview question, not a thinking question. Ask the seven women in your 2.1 list.
 3. **3.4 — what people get wrong when they repeat your one-liner.** Only learnable by saying it out loud to strangers.
-4. **Pick the ID vendor** (week 3). Criteria: Pakistani CNIC coverage, hosted flow, a webhook that returns attributes without images, a sandbox. Persona, Veriff and Stripe Identity are the candidates; nobody has checked CNIC coverage yet.
+4. **Vendor verification is deferred (D59/D63).** No week-three vendor selection or integration. Revisit only through [to-do-after-MVP.md](to-do-after-MVP.md).
 5. **Ramp thresholds (D24) are guesses.** Revisit at ~200 members with the completion data in hand.
 6. **Design work has barely started.** The composer, the feed, and the day-one experience have had a fraction of the attention verification received.
+7. **Lifecycle policy settled by D62; implementation pending.** Use [release-readiness.md](release-readiness.md)'s approved defaults for report/strike evidence, ordinary deletion and backups. Provider configuration, deletion jobs, hold review and recovery tests remain release gates.
 
 ---
 
@@ -473,3 +498,4 @@ Not exclusive at application stage, same demo for all three. **YC** is the prima
 3. **Vouching is a social deterrent, not a technical guarantee.** Someone with two willing friends gets in. Say that plainly rather than overclaiming — "we make bad actors socially expensive and remove them fast" is credible; "our AI verifies gender" invites the question you don't want.
 4. **Anonymous posting plus a safety-seeking community** goes wrong fast without a real human in the moderation queue. Budget it in hours, not just dollars.
 5. **Team review is a manual bottleneck.** Fine at 200 signups/week (~2 hours). At 5,000 you're hiring. If most people arrive through team review rather than member vouches, that's a signal the graph isn't spreading.
+6. **D39 may suppress the growth loop it's meant to protect (added 6 Sep).** Three strikes for honest-mistake vouches suspends the *voucher's* account, not just her vouching rights. The founding cohort are also the primary vouchers — if vouching starts to feel personally risky, that's friction on the one mechanic the whole cold-start strategy depends on (D1: "trust, verification, and growth all run on one mechanic"). Watch vouch volume per member after launch as a signal, not just strike counts; this isn't a call to soften D39, just a risk to have an eye on.

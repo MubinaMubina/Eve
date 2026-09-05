@@ -1,0 +1,8 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true
+  },
+  "include": ["app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "*.config.ts", "*.config.mts"],
+  "exclude": ["node_modules", "dist", "test-results", "playwright-report"]
+}
