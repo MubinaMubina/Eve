@@ -8,6 +8,7 @@
 - [architecture.md](architecture.md) — composer, feed, data model, authorization, security
 - [roadmap.md](roadmap.md) — the rebuilt six weeks
 - [todo.md](todo.md) — the checklist, the zero-budget configuration, and the spend ladder
+- [to-do-after-MVP.md](to-do-after-MVP.md) — deferred features for later review
 - [conversation-log.md](conversation-log.md) — this file
 
 ---
@@ -27,6 +28,216 @@
 ---
 
 ## 2. Decision log
+
+### D61 - MVP notifications; pre-build decision pass complete *(5 Sep, user's approval)*
+
+In-app Activity covers comments/replies, follow requests and approvals, vouch requests, admission updates, report outcomes and close-friends capture alerts. Push is optional and generic, with no names, member text or photos outside Eve. Settings can disable social push without disabling in-app Activity. Anonymous post/comment notifications retain the source thread's aliases; deliberately named comments and D46 capture alerts keep their approved in-app identities.
+
+Current access governs notifications and their destinations; no bypass of admission, privacy changes, blocks or deletion. No like notifications in MVP, while likes themselves remain. Pending applicants can receive their own admission status without member-content access.
+
+This completes the final three-decision pass (D59-D61). Move next to reconciling the architecture/schema and authorization requirements for implementation, not another general product-question round. Existing explicit implementation details and deferred items remain tracked; completion of this discussion does not mean the old SQL is ready to execute or the app is built.
+
+### D60 - Permanent account deletion *(5 Sep, user's approval)*
+
+Delete account lives in Settings with reauthentication and an irreversible confirmation. Immediately hide the profile/content and end access; permanently clean up all of her named and anonymous posts and their replies, her comments/likes elsewhere, follow relationships and circle memberships/owned circles. No undo or account restoration. Immediate disappearance is distinct from background deletion completing; do not promise instant erasure of all stored copies.
+
+Previously vouched-for women retain their accounts, with no automatic strikes or suspensions from ordinary deletion. Existing reports remain reviewable; necessary evidence is private and subject to a defined retention policy, not visible/restorable content. D57 governs deleted posts, including future DM shares. Product and implementation requirements updated; implementation and specific retention lifecycles remain pending. This settles the second of the final three pre-build decisions.
+
+### D59 - Personal vouching with team-review fallback at launch *(5 Sep, user's approval)*
+
+Keep personal vouching as the main launch admission route. Applicants who do not know an existing member can select Request team review; authorized team approval uses the existing team-invitation route. Until admitted, applicants cannot access member content. Reporting and human review continue after admission; no route guarantees that every account is eligible or will behave safely.
+
+Do not use AI to decide whether someone looks like a woman, or treat appearance, voice or a document sex marker as definitive membership proof. Eve's women-only, trans-inclusive scope and existing member-vouch rules remain unchanged. ID/selfie checks and other upgrades are deferred for after-MVP review, not approved automatic admission rules. Product, architecture requirements and backlog updated; implementation remains pending. This settles launch admission, not every detail of the previously proposed signup sequence.
+
+### D58 — Private reporting flow and review status *(5 Sep, user's approval)*
+
+Members can report posts, comments or accounts by selecting harassment, exposed private information, impersonation/fake account, spam, or another concern, with an optional explanation. Reports go to the human moderation queue. Reported members never see reporter identities.
+
+Show the reporter Received, Reviewed, and Action taken / No action taken. Do not expose internal review notes, other reporters or anonymous account identities through status updates. A report alone triggers no content removal, ban or voucher strike; findings and sanctions follow D38/D39. Existing reports survive content deletion under D44/D57, and external alerts stay generic under D45. Implementation remains pending.
+
+### D57 — Irreversible post deletion includes comments and DM shares *(5 Sep, user's decision)*
+
+Deleting a post automatically deletes its comments/replies and removes the shared post from any DMs where it appeared. DM visibility must continue to respect the source post's allowed audience. Content deletion cannot be undone; there is no trash/restore/undo flow for posts or comments. Confirm irreversible post deletion before execution.
+
+DM shares reference the source rather than preserving independent content copies. Deletion removes the shared-post item/preview, not unrelated messages. DMs remain after MVP under the existing scope; record this requirement in the after-MVP backlog without adding messaging to the current build. Internal report/backup retention is a separate lifecycle requirement, not a user recovery feature. Implementation remains pending.
+
+### D56 — Own-comment edits with a fixed identity and Edited label *(5 Sep, user's approval)*
+
+Members can edit their own comment text, with an Edited label once changed. Published comment identity cannot switch between named and anonymous; anonymous thread identity remains consistent. D55's identity prompt is for new comments, not editing existing comments. A post author may remove someone else's comment under D44 but cannot edit it. Own-comment deletion remains available.
+
+This resolves the published-comment identity question left open in D41. Product and implementation requirements are updated; implementation remains pending.
+
+### D55 — Anonymous-post likes hide names; comments explicitly choose identity *(5 Sep, user's approval and clarification)*
+
+Show anonymous-post likes as a number without the names of people who liked the post, including for its author. Do not expose liker lists, avatars or named like notifications. Preserve existing count-visibility rules and the ability to toggle one's own like; no separate like-anonymity switch is needed.
+
+When commenting on an anonymous post, ask whether to submit anonymously or with the member's name. Require an explicit choice for each new comment/reply, rather than silently retaining a previous named setting. Anonymous comments reuse the thread-specific identity under D37; named posts still accept only named comments under D35. This updates the comment flow and anonymous-like requirements; implementation remains pending.
+
+**User's wording revision:** The choices are Post as anonymous and I don't care. The first uses the anonymous thread identity; the second posts with the member's normal profile name and avatar. This changes the displayed labels, not the per-comment choice or underlying identity rules.
+
+### D54 — Going public accepts pending follow requests *(5 Sep, user's approval)*
+
+Switching a private account to public automatically accepts its eligible pending follow requests. These members become followers without any automatic close-friends/circle membership. If the account returns to private, they remain followers unless the owner removes them. Explain automatic acceptance in the privacy-switch confirmation.
+
+Preserve admission and blocking rules; only current pending requests qualify. This complements D33/D41 account transitions and D53 follower removal without restoring removed requests or circle memberships. Specification updated; implementation pending.
+
+### D53 — Follower removal clears the owner's close-friends circles *(5 Sep, user's amendment and approval)*
+
+The user approved quiet follower removal with one amendment: removing a follower also removes her from close friends / circles on both private and public accounts. Remove all of that member's memberships in circles owned by the removing account; other owners' circles are unaffected. Existing and future access based on those memberships is revoked under D34/D35.
+
+Keep the other proposed rules: no removal notification; private accounts require a new follow request and approval, while public accounts can be followed again without approval. Refollowing does not restore circle membership automatically. Removal is distinct from blocking, so eligible app-wide viewing remains possible. This approval covers owner-initiated follower removal; voluntary-unfollow behaviour is not decided here. Specification updated; implementation pending.
+
+### D52 — Basic people search in MVP *(5 Sep, user's approval)*
+
+Add people search by username or display name. Results show profile picture, display name and username; opening one follows D51's profile rules. Search requires admission, respects blocks in either direction, and does not approve private-account follows. Anonymous thread labels never resolve to the underlying real profile.
+
+This approves basic people search for MVP. It does not add post search, contact importing or anonymous-identity lookup. Product requirements and implementation tasks are recorded; implementation remains pending.
+
+### D51 — Private profile preview before follow approval *(5 Sep, user's approval)*
+
+An admitted member who has not been approved as a follower can see a private account's profile picture, display name, username, bio and app-wide named posts, with a Request to follow button. Reflect a pending request as Requested. Each restricted post still requires its own audience eligibility; follower approval does not grant circle access. Anonymous posts stay off profiles. Admission, blocking and existing count-privacy rules remain in force.
+
+This clarifies the profile surface for D31/D32 without changing the account/post privacy model. Implementation remains pending.
+
+### D50 — Choose public/private account privacy during signup *(5 Sep, user's decision)*
+
+Ask each new member to choose Private or Public during signup, rather than automatically starting all accounts private. The member can change account privacy later in settings. Named-post defaults follow the selected account privacy (D32); subsequent changes follow D33 with D41's anonymous-post exception. Membership admission remains independent of the privacy selection.
+
+This replaces the assistant's private-by-default proposal. The choice is part of MVP onboarding, not an after-MVP item. Implementation remains pending.
+
+### D49 — Saved posts deferred until after MVP *(5 Sep, user's decision)*
+
+The user requested a separate to-do-after-MVP list and placed the save-post option there. Create that backlog and exclude bookmark UI/storage/implementation from MVP scope. Preserve the proposed private in-app bookmarks, current-access checks and anonymous labels as ideas to review later, not finalized implementation requirements.
+
+### D48 — Following, Community and Anonymous feeds *(5 Sep, user's approval)*
+
+Organize Eve into three chronological feeds: Following contains named posts from followed accounts, including permitted close-friends posts; Community contains app-wide named posts; Anonymous contains app-wide anonymous conversations. All are newest first in v1. Pending follows grant no Following membership or audience access. Anonymous posts do not appear in Following or Community, and restricted named posts do not appear in Community.
+
+These are views over the same posts with the existing authorization rules, not independent content systems. Use Anonymous as the feed label in place of Rant view. This settles feed organization; no recommendation algorithm or new content format is added. Implementation remains pending.
+
+### D47 — Confirmed launch through connected friend groups *(5 Sep, user's confirmation)*
+
+The user confirmed that recruiting the first community through sisters, friends and their friends is already the plan. Clarify D10's across-cluster tactic: recruit connected groups so members know some people on arrival while app-wide conversations connect different groups. The example of 30 women across three groups is illustrative, not a fixed requirement.
+
+Keep the existing real-content Founders' Board. Observe posting, replies and unprompted return visits over the cohort's first two weeks before expanding. This documents the existing recruitment intention; no invitations or messages were sent.
+
+### D46 — Notify owners of detected close-friends screenshots/recording *(5 Sep, user's request)*
+
+Add owner notifications when a member screenshots or records close-friends / Circle content, identifying the signed-in viewer and affected content. Keep this limited to close-friends content for now. The user is otherwise satisfied with the current external-sharing policy.
+
+Platform detection is best-effort: iOS screenshot events occur after capture; capture-state signals can include recording or mirroring. Android supports standard screenshot callbacks from Android 14 and recording visibility callbacks from Android 15, with platform/method limits. Use accurate event wording and only attribute content visible during the event/session. In-app owner alerts can name the viewing account; external push stays generic under D45. No screenshot/video upload and no automatic strikes from an event alone.
+
+Record the feature as planned, requiring native-device verification before any coverage claim. Implementation sources and platform requirements are in architecture.md under D46. No additional capture-blocking or external-sharing feature is approved here.
+
+### D45 — No external sharing of member content *(5 Sep, user's decision)*
+
+The user rejected the proposed external-link sharing flow: Eve posts should never be shared outside Eve. Remove that proposal from launch scope. Provide no external post sharing, copy-post-link action, public post page, embed, cross-post or member-content download action. Named and anonymous content stay within Eve's authorized viewing surfaces. Notifications outside the app contain no member content or author identity.
+
+Keep non-content invitation, authentication, waitlist and vouch links required by existing onboarding. In-app forwarding, if introduced later, cannot expand an audience or bypass blocks; it is not newly approved here. Treat external redistribution as a community-rule violation subject to moderation. Screenshots, manual copying and external cameras remain a limit, so the policy is not a guarantee of preventing every leak. Update implementation requirements without claiming app enforcement is built.
+
+### D44 — Comment owners and post authors can remove comments *(5 Sep, user's approval)*
+
+A member can delete her own comments; a post author can remove any comment on her posts. Neither can edit another person's words. Apply the same rules to named and anonymous activity without disclosing anonymous identities. Comment closure does not remove these management rights.
+
+Removal is separate from reporting and causes no automatic moderation penalty or voucher strike. Existing reports remain independent. Record these permissions in the product and architecture; implementation remains pending.
+
+### D43 — Authors can disable, close and reopen comments *(5 Sep, user's approval)*
+
+Authors can turn comments off before publishing either a named or anonymous post, close comments after publication, and reopen them later. Closed comments prevent new comments/replies while existing comments remain visible to their eligible audience. This does not change identity, audience, reporting or blocking rules. Record the product decision and implementation requirements; app implementation remains pending.
+
+### D42 — Anonymous posts off profiles; private owner management *(5 Sep, user's approval)*
+
+Anonymous posts appear in the app-wide anonymous section under Author-number labels, never on the author's profile, even for approved followers or close friends. Exclude them from visible profile post counts. Give the author a private My anonymous posts view for finding and managing her own posts; do not expose that collection or its real-account association to other members.
+
+This confirms and extends the existing anonymous-count restriction. D41's app-wide-only audience and fixed publication identity remain, as do comment visibility and blocking rules. The user also confirmed that account privacy switches leave anonymous posts app-wide. Product specification updated; implementation pending.
+
+### D41 — Published post identity is fixed; anonymous posts are app-wide only *(5 Sep, user's approval and addition)*
+
+The user approved locking a post's named/anonymous identity after publication and added that anonymous posting has exactly one audience: Everyone on Eve. No anonymous Followers, Mutuals or Circle posts. Selecting Anonymous fixes the composer audience to app-wide, regardless of whether the account is private or public. Named posts retain their audience choices and account-derived defaults.
+
+Because app-wide is the only anonymous audience, this supersedes D33's application to anonymous posts: changing an account to private or public affects named posts only; existing anonymous posts stay app-wide. Publication identity cannot be changed by an edit or account transition. Content edits remain available. D35 comment rules and D40 blocking remain in force, as do admission and moderation restrictions. No change to published comment identity-editing rules is decided here.
+
+This replaces the original fully independent two-dial model and resolves the open question about changing published post identity. Product and technical requirements are updated; implementation remains pending.
+
+### D40 — Account-wide blocking across named and anonymous activity *(5 Sep, user's approval)*
+
+Blocking an anonymous participant blocks the underlying account across Eve, not merely that thread's label. Neither member can see the other's posts/comments or interact with her, whether named or anonymous, across existing and future activity. A block in either direction overrides other audience eligibility.
+
+Resolve identity on the server. Anonymous block confirmation and management must not expose the real username, avatar or profile or connect the member's other anonymous aliases. Keep the label from the originating action for the blocker. Blocking is not a moderation verdict and generates no voucher strikes by itself. Implementation must handle both post authors and commenters on third-party posts without leaking identities through APIs or notifications.
+
+The user deferred D39 suspension duration and asked to move on; it remains open. D40 is a product decision, with implementation pending.
+
+### D39 — Honest mistakes still earn strikes; three strikes suspend the account *(5 Sep, user's amendment)*
+
+The user added outcome-based accountability: vouchers who vouch for wrong people receive a strike even if it was an honest mistake; three strikes suspend the voucher's account. This supersedes D38's exemption from penalties for honest vouchers, while preserving evidence-based findings and human appeals.
+
+Operational rule: one strike per distinct affirmed account confirmed fake/ineligible or removed for harmful conduct, regardless of the voucher's intent. Raw reports and duplicate findings do not create strikes. Three active strikes trigger account suspension, not only loss of vouching rights. Explain counts and reasons privately. Appeals correct factual errors, attribution errors and duplicates; honest intent alone is not grounds to remove a valid strike.
+
+Keep the deliberate-misuse review path and existing budgets/waiting period. Do not blacklist phones automatically or sanction other invitees, and do not recursively issue strikes merely because a voucher was suspended by this rule. Suspension duration, reinstatement requirements, strike expiry and future external phone-voucher handling remain open. This is a documentation decision, not implemented account enforcement.
+
+### D38 — Evidence-based vouch accountability replaces automatic penalties *(5 Sep, user's approval)*
+
+*Amended by D39: the honest-mistake exemption below is historical; confirmed offending accounts now produce strikes regardless of intent.*
+
+A member's ban no longer automatically removes her vouchers' privileges, blacklists their phones, or triggers cascading removal of connected accounts. A vouch means personal knowledge and confirmation of membership eligibility, not responsibility for future behaviour. Keep the existing seven-day wait, clean-record requirement and vouch budgets.
+
+Handle the offending account on its own evidence. Investigate questionable vouches using confirmed patterns and specific evidence of false attestation or knowing ban evasion. Shared devices, network addresses, timing, and report counts do not by themselves establish intent. Ask the voucher privately for context without exposing reporters. Credible evidence of coordinated misuse can justify a temporary pause on further vouching; resolved concerns restore privileges. Deliberate or repeated confirmed misuse can lead to loss of vouching privileges, with reasons and a human appeal path. Other connected accounts require individual review rather than automatic sanctions.
+
+This supersedes automatic burned-phone and cascading-revocation proposals in D4/D18-D19/D27 and their corresponding product/architecture notes. A first deliberate false vouch may still evade detection; vouching remains one admission signal backed by ongoing moderation. Product policy and implementation requirements are updated; no app implementation is claimed.
+
+### D37 — Author label, random anonymous identities, reserved username *(5 Sep, user's call)*
+
+The original poster in an anonymous thread is labeled Author followed by a random number. The user clarified that the author also needs a number to distinguish different anonymous posts. Assign a distinct author number per anonymous post and retain it in the author's anonymous replies; another post by the same member gets a different number. Other anonymous commenters use Anonymous followed by a random number and a random cartoon-style profile picture. This refines the proposed sequential labels into random numbers while retaining a consistent identity within each thread. Assign identities independently in different threads, without exposing a real profile or using its picture. Named comments remain available on anonymous posts under D35.
+
+The username anonymous is reserved and cannot be selected at signup; enforce case-insensitively and on username changes too. The Author marker is determined by ownership, not a user-entered name. Record this as a product requirement; artwork selection and implementation remain pending.
+
+### D36 — Circles immediately after admission; waiting period for vouching *(5 Sep, user's approval)*
+
+Active admitted women (Tier 2) can create and manage close-friends circles immediately. Circle creation no longer requires Tier 3 or a seven-day wait. Vouching for new members remains an established-member capability with the existing seven-day waiting period, clean-record requirement, and vouch budget.
+
+This revises the circle-creation capability in D7's historical tier table. It does not alter circle audience/history rules (D34) or grant community access before admission. The specification is updated; implementation remains pending.
+
+### D35 — Comments inherit visibility; anonymity depends on the post *(5 Sep, user's call)*
+
+Comments use the parent post's current audience, including when existing posts widen or narrow through audience edits, account privacy changes, or circle membership. There is no independent comment audience.
+
+Anonymous commenting is available only on an anonymous post. A commenter on an anonymous post can choose named or anonymous; comments on a named post must be named. Audience changes preserve comment identity. This revises D2's unrestricted reply identity dial and resolves the comment-visibility questions left open in D33/D34. It does not settle whether a published post can later change between named and anonymous.
+
+### D34 — Close-friends additions grant access to past posts *(5 Sep, user's call)*
+
+The user confirmed that adding someone to close friends makes all close-friends posts visible to her. Each circle therefore uses current membership for both historical and future posts, rather than a membership snapshot taken when the post was published. Access is specific to the circle joined and still requires community admission.
+
+This confirms the read-time membership model in the architecture. The existing rule that removal revokes circle-based access remains. Reply visibility when a parent audience widens is the next discussion point and is not settled here.
+
+### D33 — Account privacy changes apply to existing posts *(5 Sep, user's call)*
+
+The user specified: private to public makes all content public except close-friends posts; public to private makes everything private. Public means Everyone on Eve, within the admitted women-only community.
+
+On private to public, all non-circle posts become app-wide, including explicit Followers and Mutuals posts. Circle posts keep their circle audience. On public to private, all existing app-wide posts become Followers-only, while already narrower audiences remain restricted. Circle posts never broaden to all followers as a side effect of switching account privacy. Identity settings are separate: anonymous posts stay anonymous.
+
+This replaces the earlier proposed interpretation that every explicit per-post audience survives an account switch. It is a transition rule, not a permanent ban on app-wide posts from private accounts; the user can still choose app-wide for a new post afterward (D30/D32). Replies on widened posts, drafts, and circle membership changes remain separate discussion points. Implementation is pending.
+
+### D32 — New-post defaults follow account privacy *(5 Sep, user's call)*
+
+A private account defaults to Followers; a public account defaults to Everyone on Eve. The owner can override each post's audience, but subsequent new posts still default according to account privacy. There is no independent preferred-default setting and no remembering the last post's audience. Changing account privacy changes the default.
+
+This supersedes the last-used audience rule in the original architecture and the proposed preference setting from the review. Effects on existing posts, replies and circle history remain for the next discussion; no retroactive change rule is adopted here.
+
+### D31 — Private accounts approve or decline follow requests *(5 Sep, user's call)*
+
+A private account holder must approve or decline incoming follow requests. A request alone grants no followers-only access; only approval creates the follow relationship. Mutuals require established follows in both directions, and circle access still requires circle membership. App-wide posts remain visible to admitted members without follow approval, independently of account privacy (D30).
+
+This settles the follow-request product rule. Implementation remains on the checklist. Default audience selection is the next discussion point and is not decided by this entry.
+
+### D30 — Women-only launch; per-post audiences within the community *(5 Sep, user's call)*
+
+**Current decision, listed first to supersede older entries below.** Eve starts as a women-only space. Adding men or other audiences is deferred for later consideration. The prior inclusion of trans women remains; no new verification method was selected in this discussion. Business features remain post-launch proposals.
+
+The user clarified that an account can be private while an individual post is app-wide. Audience choices describe reach within Eve: **Everyone on Eve / Followers / Mutuals / A circle**. A circle is a selected group of close friends. There is no separate Women only filter in a community whose members are already women, and no additional gender restriction layered over circles. Additional audience options can be considered later.
+
+App-wide means within the admitted community, not publicly accessible on the internet. A post's audience does not change the account's privacy or expose its other posts. Membership eligibility must apply before every audience rule, so the old unverified public-post lobby and the mixed-gender examples are superseded. The product tier table reflects this; detailed technical reconciliation and onboarding design remain to be done before implementation.
+
+This revises D1's audience labels, D7's public lobby, D14-D16's mixed-membership assumptions, and D22's eligibility rule. Other proposals from the second review remain separate discussion points, including historical audience changes, reply controls, vouch penalties, recruitment, and monetization. Earlier entries below are retained as decision history.
 
 ### D1 — The product is per-post audience control
 One composer, two dials. **Who sees this** (everyone / women only / followers / mutuals / a named circle) and **posted as** (me / anonymous). Everything else is a feed showing what you're allowed to see.

@@ -6,6 +6,8 @@
 
 **Companion docs:** [architecture.md](architecture.md) · [product-v1.md](product-v1.md) · [conversation-log.md](conversation-log.md)
 
+**5 Sep scope override (D30):** Launch membership is women-only. Reconcile the architecture draft before building it. The demo should show a private account publishing an app-wide post, then a followers/circle post hidden from an admitted member outside that audience. Also verify that pending applicants cannot access member content. Earlier instructions to demonstrate a women's post against a male member account are superseded. Use Everyone on Eve / Followers / Mutuals / A circle as the audience choices; business access remains post-launch.
+
 ---
 
 ## The three tracks
@@ -40,7 +42,7 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 **Build:** the composer with both dials, posts table, and the feed with cursor pagination. By Friday you can post something to a chosen audience and see it in a feed. That's the spine.
 
-**Users:** expand outward from the seven. Ask each for two names in *different* circles — other cities, other universities, other friend groups. Fifty women who all know each other is one dense pocket; fifty across clusters is fifty expansion fronts.
+**Users:** expand outward from the seven through connected friend groups (D47). Each newcomer should already know some members, with several groups represented so app-wide conversations can connect them. Around 30 women across three groups is an example, not a fixed target.
 
 **Decide:** the verb (3.2). "Share" is too weak. It shows up in the composer button, the landing page, and the pitch, so it's worth an hour.
 
@@ -48,15 +50,15 @@ Three things run in parallel and only one of them is code. The build is the one 
 
 ## Week 3 · Sep 15–21
 
-**Build:** follows, circles, the "+ add specific people" flow, and both verification doors end to end. Path B: vouch tokens, the voucher page, anti-self-vouch checks. Path A: pick the vendor on Monday — the criteria are Pakistani CNIC coverage, a hosted flow, a webhook that returns attributes without images, and a sandbox — then wire the hosted session and the signed webhook. Both doors land in one `recompute_tier` call.
+**Build (D59 launch scope):** follows, circles, the "+ add specific people" flow, personal vouching and Request team review. Build vouch tokens, the voucher page, anti-self-vouch checks, applicant review status and a private team-review queue. Approved team reviews use the existing team-admission route; both launch routes use server-controlled admission and grant no member-content access while pending. Vendor ID/selfie integration remains after MVP; reconcile the old `recompute_tier` sketch before implementation.
 
-**Users:** line up the founding cohort. Target 30–50 committed women who've agreed to post in week 4, not just to sign up. A member who joins and never posts is worse than no member — she's a person who saw an empty room.
+**Users:** line up the founding cohort through those groups. The existing 30–50 target is flexible; secure a few willing posters and responders in each group. Observe contributions and return visits over the first two weeks of use, including whether members return without repeated founder reminders (D47).
 
 ---
 
 ## Week 4 · Sep 22–28
 
-**Build:** rant view, report/block, the moderation queue, push notifications, and PostHog retention events. Instrument D1/D7/D30 with weekly cohorts — retention only measures forward and you cannot backfill it in October.
+**Build:** complete the chronological Following, Community and Anonymous feeds (D48), report/block, the moderation queue, push notifications, and PostHog retention events. Instrument D1/D7/D30 with weekly cohorts — retention only measures forward and you cannot backfill it in October.
 
 **First TestFlight build uploaded by Wednesday** through your friend's account, so Beta App Review (a day or two) clears by Friday and the cohort installs from a public link in week 5. App Privacy labels and a privacy-policy URL are required for beta review too — the template terms from week 3 cover it. Report and block are in this build on purpose: Guideline 1.2 requires them for anything with user-generated content.
 
